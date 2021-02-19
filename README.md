@@ -16,4 +16,5 @@ None yet.
 Planned are:
 
 * Pattern for `G30` response parsing
-* Corner points (currently its hard-coded to an Ender 3's `(30, 30), (200, 30), (200, 200), (30, 200)`).
+* Corner points - currently its hard-coded to an Ender 3's `(30, 30), (200, 30), (200, 200), (30, 200)`.
+* Invert arrows on display for inverse screw threads

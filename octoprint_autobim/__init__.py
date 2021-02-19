@@ -17,7 +17,7 @@ class AutoBimError(Exception):
 
 class LogParser(PrinterCallback):
 
-	def __init__(self, z_values, pattern=r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d)$"):
+	def __init__(self, z_values, pattern=r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$"):
 		self.z_values = z_values
 		self.pattern = pattern
 
@@ -100,7 +100,7 @@ class AutobimPlugin(
 
 	def autobim(self):
 		self.check_state()
-		self._printer.commands("wait...")
+		self._printer.commands("M117 wait...")
 
 		self._printer.home(["x", "y", "z"])
 		# Jettison saved mesh
