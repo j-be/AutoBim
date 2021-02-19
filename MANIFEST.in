@@ -1,0 +1,4 @@
+include README.md
+recursive-include octoprint_autobim/templates *
+recursive-include octoprint_autobim/translations *
+recursive-include octoprint_autobim/static *
