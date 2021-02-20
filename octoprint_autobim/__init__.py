@@ -122,6 +122,10 @@ class AutobimPlugin(
 				self._logger.info("AutoBim error: " + str(error.message))
 				return str(error.message), 405
 
+	##~~ Gcode received hook
+	def process_gcode(self, comm, line, *args, **kwargs):
+		self._logger.info("process_gcode - Line: '%s' Comm: '%s'" % (comm, line))
+
 	##~~ Plugin implementation
 
 	def check_state(self):
@@ -192,7 +196,8 @@ def __plugin_load__():
 
 	global __plugin_hooks__
 	__plugin_hooks__ = {
-		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
+		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
+		"octoprint.comm.protocol.gcode.received": __plugin_implementation__.process_gcode,
 	}
 
 if __name__ == "__main__":
