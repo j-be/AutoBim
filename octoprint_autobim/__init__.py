@@ -23,16 +23,25 @@ class LogParser(PrinterCallback):
 		self.pattern = pattern
 		self.logger = logger
 
+	def on_printer_add_log(self, data):
+		self.on_printer_message("on_printer_add_log", data)
+
 	def on_printer_add_message(self, data):
-		self.log("Got data '%s'" % data)
+		self.on_printer_message("on_printer_add_message", data)
+
+	def on_printer_add_temperature(self, data):
+		self.on_printer_message("on_printer_add_temperature", str(data))
+
+	def on_printer_message(self, fn, data):
+		self.log("%s: Got data '%s'" % (fn, data))
 		match = re.compile(self.pattern).match(data)
 		if match:
 			z_value = float(match.group(1))
 			self.log("Match! Adding to queue: '%f'" % z_value)
 			self.z_values.put(z_value)
-			self.log("Added")
-		else:
-			self.log("No match")
+
+	def on_printer_received_registered_message(self, name, output):
+		self.log("Got registered message name='%s', output='%s'" % (name, output))
 
 	def log(self, msg):
 		if self.logger:
