@@ -128,7 +128,7 @@ class AutobimPlugin(
 			# TODO: Use from settings
 			for corner in [(30, 30), (200, 30), (200, 200), (30, 200)]:
 				z_current = 1
-				while z_current and not self.running:
+				while z_current and self.running:
 					self._printer.commands("G30 X%d Y%d" % corner)
 					try:
 						z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
