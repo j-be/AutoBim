@@ -88,11 +88,15 @@ class AutobimPlugin(
 
 	def process_gcode(self, comm, line, *args, **kwargs):
 		self._logger.info("process_gcode - Line: '%s' Comm: '%s'" % (comm, line))
-		match = self.pattern.match(line)
-		if match:
-			z_value = float(match.group(1))
-			self._logger.info("Match! Adding to queue: '%f'" % z_value)
-			self.z_values.put(z_value)
+		try:
+			match = self.pattern.match(line)
+			if match:
+				z_value = float(match.group(1))
+				self._logger.info("Match! Adding to queue: '%f'" % z_value)
+				self.z_values.put(z_value)
+		except Exception as e:
+			self._logger.error("Error in process_gcode: %s" % str(e))
+		return line
 
 	##~~ Plugin implementation
 
