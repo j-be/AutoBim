@@ -116,24 +116,12 @@ class AutobimPlugin(
 		self._printer.home(["x", "y", "z"])
 		# Jettison saved mesh
 		self._printer.commands("G29 J")
-		# Get Z value of center TODO: Use bed geometry
-		self.process = True
-		self._printer.commands("G30 X115 Y115")
-		try:
-			self._logger.info("Waiting for center Z...")
-			z_center = self.z_values.get(timeout=QUEUE_TIMEOUT)
-		except queue.Empty:
-			self.abort("Cannot get center Z")
-			return
-
-		if not z_center:
-			self.abort("Cannot determine Z value for center")
-			return
 
 		# TODO: Use from settings
+		self.process = True
 		for corner in [(30, 30), (200, 30), (200, 200), (30, 200)]:
-			z_current = None
-			while z_current != z_center:
+			z_current = 1
+			while z_current:
 				self._printer.commands("G30 X%d Y%d" % corner)
 				try:
 					z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
@@ -141,8 +129,7 @@ class AutobimPlugin(
 					self.abort("Cannot get corner Z for corner %s" % str(corner))
 					return
 
-				self._printer.commands("M117 %s" % self.get_message(z_current - z_center))
-
+				self._printer.commands("M117 %s" % self.get_message(z_current))
 		self._printer.commands("done")
 		self.process = False
 
