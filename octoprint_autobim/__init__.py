@@ -30,8 +30,7 @@ class AutobimPlugin(
 		super(AutobimPlugin, self).__init__()
 		self.z_values = queue.Queue(maxsize=1)
 		self.pattern = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
-		self.process = False
-		self.abort = True
+		self.running = False
 
 	##~~ StartupPlugin mixin
 
@@ -81,7 +80,7 @@ class AutobimPlugin(
 		if command == "start":
 			if current_user.is_anonymous():
 				return "Insufficient rights", 403
-			if not self.abort:
+			if not self.running:
 				return "Already running", 400
 			self._logger.info("Starting")
 			thread = threading.Thread(target=self.autobim)
@@ -93,7 +92,7 @@ class AutobimPlugin(
 	##~~ Gcode received hook
 
 	def process_gcode(self, comm, line, *args, **kwargs):
-		if not self.process:
+		if not self.running:
 			return line
 
 		self._logger.info("process_gcode - Line: '%s' Comm: '%s'" % (comm, line))
@@ -115,7 +114,6 @@ class AutobimPlugin(
 
 	def autobim(self):
 		self.check_state()
-		self.abort = False
 
 		self._printer.commands("M117 wait...")
 
@@ -123,21 +121,26 @@ class AutobimPlugin(
 		# Jettison saved mesh
 		self._printer.commands("G29 J")
 
-		self.process = True
-		# TODO: Use from settings
-		for corner in [(30, 30), (200, 30), (200, 200), (30, 200)]:
-			z_current = 1
-			while z_current and not self.abort:
-				self._printer.commands("G30 X%d Y%d" % corner)
-				try:
-					z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
-				except queue.Empty:
-					self.abort_now("Cannot get corner Z for corner %s" % str(corner))
-					return
+		self.running = True
+		changed = True
+		while changed and self.running:
+			changed = False
+			# TODO: Use from settings
+			for corner in [(30, 30), (200, 30), (200, 200), (30, 200)]:
+				z_current = 1
+				while z_current and not self.running:
+					self._printer.commands("G30 X%d Y%d" % corner)
+					try:
+						z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
+					except queue.Empty:
+						self.abort_now("Cannot get corner Z for corner %s" % str(corner))
+						return
 
-				self._printer.commands("M117 %s" % self.get_message(z_current))
-		self._printer.commands("done")
-		self.process = False
+					if z_current:
+						changed = True
+					self._printer.commands("M117 %s" % self.get_message(z_current))
+		self._printer.commands("M117 done")
+		self.running = False
 
 	def get_message(self, diff):
 		def get_count():
@@ -152,8 +155,7 @@ class AutobimPlugin(
 	def abort_now(self, msg):
 		self._logger.error(msg)
 		self._printer.commands("M117 %s" % msg)
-		self.process = False
-		self.abort = True
+		self.running = False
 
 __plugin_name__ = "AutoBim"
 __plugin_pythoncompat__ = ">=2.7,<4"  # python 2 and 3
