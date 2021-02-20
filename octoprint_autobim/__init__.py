@@ -80,7 +80,7 @@ class AutobimPlugin(
 		if command == "start":
 			if current_user.is_anonymous():
 				return "Insufficient rights", 403
-			if not self.running:
+			if self.running:
 				return "Already running", 400
 			self._logger.info("Starting")
 			thread = threading.Thread(target=self.autobim)
