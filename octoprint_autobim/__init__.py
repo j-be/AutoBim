@@ -9,6 +9,9 @@ from flask_login import current_user
 from octoprint.printer import PrinterCallback
 
 
+QUEUE_TIMEOUT = 60
+
+
 class AutoBimError(Exception):
 
 	def __init__(self, message):
@@ -31,6 +34,12 @@ class LogParser(PrinterCallback):
 
 	def on_printer_add_temperature(self, data):
 		self.on_printer_message("on_printer_add_temperature", str(data))
+
+	def on_printer_send_initial_data(self, data):
+		self.on_printer_message("on_printer_send_initial_data", str(data))
+
+	def on_printer_send_current_data(self, data):
+		self.on_printer_message("on_printer_send_current_data", str(data))
 
 	def on_printer_message(self, fn, data):
 		self.log("%s: Got data '%s'" % (fn, data))
@@ -133,7 +142,7 @@ class AutobimPlugin(
 		self._printer.commands("G30 X115 Y115")
 		try:
 			self._logger.info("Waiting for center Z...")
-			z_center = self.z_values.get(timeout=30)
+			z_center = self.z_values.get(timeout=QUEUE_TIMEOUT)
 		except queue.Empty:
 			self.abort("Cannot get center Z")
 			return
@@ -148,7 +157,7 @@ class AutobimPlugin(
 			while z_current != z_center:
 				self._printer.commands("G30 X%d Y%d" % corner)
 				try:
-					z_current = self.z_values.get(timeout=30)
+					z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
 				except queue.Empty:
 					self.abort("Cannot get corner Z for corner %s" % str(corner))
 					return
@@ -185,3 +194,9 @@ def __plugin_load__():
 	__plugin_hooks__ = {
 		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
 	}
+
+if __name__ == "__main__":
+	q = queue.Queue(maxsize=1)
+	l = LogParser(q)
+	l.on_printer_add_message("Bed X: 115.00 Y: 115.00 Z: 0.00")
+	print(q.get(timeout=0))
