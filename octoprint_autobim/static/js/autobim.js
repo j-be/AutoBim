@@ -6,13 +6,18 @@
  */
 $(function () {
     function AutobimViewModel(parameters) {
-        var self = this;
+        let self = this;
         self.settings = parameters[0];
+        self.startButton = null;
+        self.abortButton = null;
 
         console.log("AutoBim *ring-ring*");
 
         self.startAutoBim = function () {
             console.log("AutoBim starting");
+            self.startButton.addClass('hidden');
+            self.abortButton.removeClass('hidden');
+
             $.ajax({
                 url: API_BASEURL + "plugin/autobim",
                 type: "POST",
@@ -21,8 +26,8 @@ $(function () {
                     command: "start"
                 }),
                 contentType: "application/json; charset=UTF-8",
-                error: function (data, status) {
-                    var options = {
+                error: function (data, _) {
+                    new PNotify({
                         title: "Autobim failed.",
                         text: data.responseText,
                         hide: true,
@@ -31,16 +36,44 @@ $(function () {
                             closer: true
                         },
                         type: "error"
-                    };
+                    });
+                }
+            });
+        };
 
-                    new PNotify(options);
+        self.abortAutoBim = function () {
+            console.log("Aborting AutoBim");
+            self.startButton.removeClass('hidden');
+            self.abortButton.addClass('hidden');
+
+            $.ajax({
+                url: API_BASEURL + "plugin/autobim",
+                type: "POST",
+                dataType: "json",
+                data: JSON.stringify({
+                    command: "abort"
+                }),
+                contentType: "application/json; charset=UTF-8",
+                error: function (data, _) {
+                    new PNotify({
+                        title: "Autobim failed.",
+                        text: data.responseText,
+                        hide: true,
+                        buttons: {
+                            sticker: false,
+                            closer: true
+                        },
+                        type: "error"
+                    });
                 }
             });
         };
 
         self.onBeforeBinding = function () {
-            let autoBimButton = $('#autoBimButton')[0];
-            autoBimButton.onclick = self.startAutoBim;
+            self.startButton = $('#startAutoBimButton');
+            self.startButton.click(self.startAutoBim);
+            self.abortButton = $('#abortAutoBimButton');
+            self.abortButton.click(self.abortAutoBim);
         };
     }
 

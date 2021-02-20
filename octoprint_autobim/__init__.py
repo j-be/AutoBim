@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 import queue
+import threading
 import re
 
 import octoprint.plugin
@@ -30,6 +31,7 @@ class AutobimPlugin(
 		self.z_values = queue.Queue(maxsize=1)
 		self.pattern = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
 		self.process = False
+		self.abort = True
 
 	##~~ StartupPlugin mixin
 
@@ -71,20 +73,22 @@ class AutobimPlugin(
 
 	def get_api_commands(self):
 		return dict(
-			start=[]
+			start=[],
+			abort=[],
 		)
 
 	def on_api_command(self, command, data):
 		if command == "start":
 			if current_user.is_anonymous():
 				return "Insufficient rights", 403
-			try:
-				self.autobim()
-			except AutoBimError as error:
-				self._logger.info("AutoBim error: " + str(error.message))
-				return str(error.message), 405
-			finally:
-				self.process = False
+			if not self.abort:
+				return "Already running", 400
+			self._logger.info("Starting")
+			thread = threading.Thread(target=self.autobim)
+			thread.start()
+
+		if command == "abort":
+			self.abort_now("Aborted")
 
 	##~~ Gcode received hook
 
@@ -111,6 +115,7 @@ class AutobimPlugin(
 
 	def autobim(self):
 		self.check_state()
+		self.abort = False
 
 		self._printer.commands("M117 wait...")
 
@@ -118,16 +123,16 @@ class AutobimPlugin(
 		# Jettison saved mesh
 		self._printer.commands("G29 J")
 
-		# TODO: Use from settings
 		self.process = True
+		# TODO: Use from settings
 		for corner in [(30, 30), (200, 30), (200, 200), (30, 200)]:
 			z_current = 1
-			while z_current:
+			while z_current and not self.abort:
 				self._printer.commands("G30 X%d Y%d" % corner)
 				try:
 					z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
 				except queue.Empty:
-					self.abort("Cannot get corner Z for corner %s" % str(corner))
+					self.abort_now("Cannot get corner Z for corner %s" % str(corner))
 					return
 
 				self._printer.commands("M117 %s" % self.get_message(z_current))
@@ -144,10 +149,11 @@ class AutobimPlugin(
 			return "%.2f " % diff + ">" * get_count()
 		return "ok. moving to next"
 
-	def abort(self, msg):
+	def abort_now(self, msg):
 		self._logger.error(msg)
 		self._printer.commands("M117 %s" % msg)
 		self.process = False
+		self.abort = True
 
 __plugin_name__ = "AutoBim"
 __plugin_pythoncompat__ = ">=2.7,<4"  # python 2 and 3
