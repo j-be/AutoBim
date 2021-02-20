@@ -28,8 +28,8 @@ class AutobimPlugin(
 	def __init__(self):
 		super(AutobimPlugin, self).__init__()
 		self.z_values = queue.Queue(maxsize=1)
-		self.log_parser = None
 		self.pattern = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
+		self.process = False
 
 	##~~ StartupPlugin mixin
 
@@ -83,11 +83,15 @@ class AutobimPlugin(
 			except AutoBimError as error:
 				self._logger.info("AutoBim error: " + str(error.message))
 				return str(error.message), 405
+			finally:
+				self.process = False
 
 	##~~ Gcode received hook
 
 	def process_gcode(self, comm, line, *args, **kwargs):
 		self._logger.info("process_gcode - Line: '%s' Comm: '%s'" % (comm, line))
+		if not self.process:
+			return line
 		try:
 			match = self.pattern.match(line)
 			if match:
@@ -107,13 +111,13 @@ class AutobimPlugin(
 	def autobim(self):
 		self.check_state()
 
-		self._printer.register_callback(self.log_parser)
 		self._printer.commands("M117 wait...")
 
 		self._printer.home(["x", "y", "z"])
 		# Jettison saved mesh
 		self._printer.commands("G29 J")
-		# TODO: Use bed geometry
+		# Get Z value of center TODO: Use bed geometry
+		self.process = True
 		self._printer.commands("G30 X115 Y115")
 		try:
 			self._logger.info("Waiting for center Z...")
@@ -140,7 +144,7 @@ class AutobimPlugin(
 				self._printer.commands("M117 %s" % self.get_message(z_current - z_center))
 
 		self._printer.commands("done")
-		self._printer.unregister_callback(self.log_parser)
+		self.process = False
 
 	def get_message(self, diff):
 		def get_count():
@@ -155,7 +159,7 @@ class AutobimPlugin(
 	def abort(self, msg):
 		self._logger.error(msg)
 		self._printer.commands("M117 %s" % msg)
-		self._printer.unregister_callback(self.log_parser)
+		self.process = False
 
 __plugin_name__ = "AutoBim"
 __plugin_pythoncompat__ = ">=2.7,<4"  # python 2 and 3
