@@ -6,7 +6,6 @@ import re
 
 import octoprint.plugin
 from flask_login import current_user
-from octoprint.printer import PrinterCallback
 
 
 QUEUE_TIMEOUT = 60
@@ -17,44 +16,6 @@ class AutoBimError(Exception):
 	def __init__(self, message):
 		super(AutoBimError, self).__init__(message)
 		self.message = message
-
-
-class LogParser(PrinterCallback):
-
-	def __init__(self, z_values, pattern=r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$", logger=None):
-		self.z_values = z_values
-		self.pattern = pattern
-		self.logger = logger
-
-	def on_printer_add_log(self, data):
-		self.on_printer_message("on_printer_add_log", data)
-
-	def on_printer_add_message(self, data):
-		self.on_printer_message("on_printer_add_message", data)
-
-	def on_printer_add_temperature(self, data):
-		self.on_printer_message("on_printer_add_temperature", str(data))
-
-	def on_printer_send_initial_data(self, data):
-		self.on_printer_message("on_printer_send_initial_data", str(data))
-
-	def on_printer_send_current_data(self, data):
-		self.on_printer_message("on_printer_send_current_data", str(data))
-
-	def on_printer_message(self, fn, data):
-		self.log("%s: Got data '%s'" % (fn, data))
-		match = re.compile(self.pattern).match(data)
-		if match:
-			z_value = float(match.group(1))
-			self.log("Match! Adding to queue: '%f'" % z_value)
-			self.z_values.put(z_value)
-
-	def on_printer_received_registered_message(self, name, output):
-		self.log("Got registered message name='%s', output='%s'" % (name, output))
-
-	def log(self, msg):
-		if self.logger:
-			self.logger.info(msg)
 
 
 class AutobimPlugin(
@@ -68,6 +29,7 @@ class AutobimPlugin(
 		super(AutobimPlugin, self).__init__()
 		self.z_values = queue.Queue(maxsize=1)
 		self.log_parser = None
+		self.pattern = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
 
 	##~~ StartupPlugin mixin
 
@@ -123,9 +85,14 @@ class AutobimPlugin(
 				return str(error.message), 405
 
 	##~~ Gcode received hook
+
 	def process_gcode(self, comm, line, *args, **kwargs):
 		self._logger.info("process_gcode - Line: '%s' Comm: '%s'" % (comm, line))
-		return line
+		match = self.pattern.match(line)
+		if match:
+			z_value = float(match.group(1))
+			self._logger.info("Match! Adding to queue: '%f'" % z_value)
+			self.z_values.put(z_value)
 
 	##~~ Plugin implementation
 
@@ -136,7 +103,6 @@ class AutobimPlugin(
 	def autobim(self):
 		self.check_state()
 
-		self.log_parser = LogParser(self.z_values, logger=self._logger)
 		self._printer.register_callback(self.log_parser)
 		self._printer.commands("M117 wait...")
 
@@ -200,9 +166,3 @@ def __plugin_load__():
 		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
 		"octoprint.comm.protocol.gcode.received": __plugin_implementation__.process_gcode,
 	}
-
-if __name__ == "__main__":
-	q = queue.Queue(maxsize=1)
-	l = LogParser(q)
-	l.on_printer_add_message("Bed X: 115.00 Y: 115.00 Z: 0.00")
-	print(q.get(timeout=0))
