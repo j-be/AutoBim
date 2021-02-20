@@ -125,6 +125,7 @@ class AutobimPlugin(
 	##~~ Gcode received hook
 	def process_gcode(self, comm, line, *args, **kwargs):
 		self._logger.info("process_gcode - Line: '%s' Comm: '%s'" % (comm, line))
+		return line
 
 	##~~ Plugin implementation
 
