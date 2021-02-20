@@ -24,6 +24,7 @@ class AutobimPlugin(
 	octoprint.plugin.AssetPlugin,
 	octoprint.plugin.TemplatePlugin,
 	octoprint.plugin.SimpleApiPlugin,
+	octoprint.plugin.SettingsPlugin,
 ):
 
 	def __init__(self):
@@ -69,6 +70,13 @@ class AutobimPlugin(
 			)
 		)
 
+	##~~ TemplatePlugin mixin
+
+	def get_template_configs(self):
+		return [
+			dict(type="settings", custom_bindings=False)
+		]
+
 	##~~ SimpleApiPlugin mixin
 
 	def get_api_commands(self):
@@ -91,6 +99,15 @@ class AutobimPlugin(
 			self.abort_now("Aborted by user")
 		elif command == "status":
 			return dict(running=self.running), 200
+
+	##~~ SettingsPlugin mixin
+
+	def get_settings_defaults(self):
+		return dict(
+			invert=False,
+			multipass=True,
+			threshold=0.01,
+		)
 
 	##~~ Gcode received hook
 
@@ -127,13 +144,15 @@ class AutobimPlugin(
 
 		self.running = True
 		changed = True
+		threshold = self._settings.get_boolean(["threshold"])
+		multipass = self._settings.get_boolean(["multipass"])
+
 		while changed and self.running:
 			changed = False
 			# TODO: Use from settings
 			for corner in [(30, 30), (200, 30), (200, 200), (30, 200)]:
 				z_current = 1
-				# TODO: Accuracy Threshold from settings
-				while z_current and self.running:
+				while z_current >= threshold and self.running:
 					self._printer.commands("G30 X%d Y%d" % corner)
 					try:
 						z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
@@ -141,11 +160,8 @@ class AutobimPlugin(
 						self.abort_now("Cannot get Z for corner %s" % str(corner))
 						return
 
-					# TODO: Accuracy Threshold from settings
-					# TODO: Enable/Disable Multi-pass
-					if z_current:
+					if z_current >= threshold and multipass:
 						changed = True
-					# TODO: Invert from settings
 					self._printer.commands("M117 %s" % self.get_message(z_current))
 
 		self._printer.commands("M117 done")
@@ -156,11 +172,13 @@ class AutobimPlugin(
 		def get_count():
 			return min(abs(int(diff / 0.025)) + 1, 5)
 
-		if diff < 0:
+		if not diff:
+			return "ok. moving to next"
+
+		invert = self._settings.get_boolean(['invert'])
+		if invert ^ (diff < 0):
 			return "%.2f " % diff + "<" * get_count()
-		elif diff > 0:
-			return "%.2f " % diff + ">" * get_count()
-		return "ok. moving to next"
+		return "%.2f " % diff + ">" * get_count()
 
 	def abort_now(self, msg):
 		self._logger.error(msg)

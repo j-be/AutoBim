@@ -47,14 +47,18 @@ or manually using this URL:
 
 ## Configuration
 
-None yet.
+Defaults are for an Ender 3 sized printer and a BLTouch. You can configure:
+
+* Enable/Disable multi-pass (i.e. go on until a full round measures ok)
+  * Default: `On`
+* Invert arrows on display, e.g. for inverse screw threads on the adjustment screws
+  * Default: `Off`
+* Accuracy threshold
+  * Default: `0.01`
 
 Planned are (ordered by assumed priority):
 
 * Corner points - currently its hard-coded to an Ender 3's `(30, 30), (200, 30), (200, 200), (30, 200)`.
-* Accuracy threshold (currently dependent on what precision Marlin returns on `G30` - in my cas `0.01`)
-* Enable/Disable multi-pass (i.e. go on until a full round measures ok)
-* Invert arrows on display for inverse screw threads
 * Pattern for `G30` response parsing
 
 ## Why the name?
