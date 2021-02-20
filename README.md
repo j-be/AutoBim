@@ -14,7 +14,7 @@ So if you may want to check out that before using this plugin.
 
 ## Why should I use it?
 
-#### Doesn't Marline already account for a tilted bed that if I have an ABL?
+#### Doesn't Marlin already account for a tilted bed if I have an ABL probe?
 
 Yes, but it really shouldn't. Imho ABL should be used for correcting irregularities in bed surface (warps, bumps, etc.)
 and for having the same distance to the bed on every print (think different beds, different bed temps, etc.). Tilted
