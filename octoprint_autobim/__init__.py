@@ -29,6 +29,7 @@ class AutobimPlugin(
 	def __init__(self):
 		super(AutobimPlugin, self).__init__()
 		self.z_values = queue.Queue(maxsize=1)
+		# TODO: Move pattern to settings
 		self.pattern = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
 		self.running = False
 
@@ -131,6 +132,7 @@ class AutobimPlugin(
 			# TODO: Use from settings
 			for corner in [(30, 30), (200, 30), (200, 200), (30, 200)]:
 				z_current = 1
+				# TODO: Accuracy Threshold from settings
 				while z_current and self.running:
 					self._printer.commands("G30 X%d Y%d" % corner)
 					try:
@@ -139,9 +141,13 @@ class AutobimPlugin(
 						self.abort_now("Cannot get Z for corner %s" % str(corner))
 						return
 
+					# TODO: Accuracy Threshold from settings
+					# TODO: Enable/Disable Multi-pass
 					if z_current:
 						changed = True
+					# TODO: Invert from settings
 					self._printer.commands("M117 %s" % self.get_message(z_current))
+
 		self._printer.commands("M117 done")
 		self.running = False
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="completed"))
