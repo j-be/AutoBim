@@ -9,7 +9,7 @@ import octoprint.plugin
 from flask_login import current_user
 
 
-QUEUE_TIMEOUT = 60
+QUEUE_TIMEOUT = 180
 
 
 class AutoBimError(Exception):
