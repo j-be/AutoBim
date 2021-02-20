@@ -89,9 +89,10 @@ class AutobimPlugin(
 	##~~ Gcode received hook
 
 	def process_gcode(self, comm, line, *args, **kwargs):
-		self._logger.info("process_gcode - Line: '%s' Comm: '%s'" % (comm, line))
 		if not self.process:
 			return line
+
+		self._logger.info("process_gcode - Line: '%s' Comm: '%s'" % (comm, line))
 		try:
 			match = self.pattern.match(line)
 			if match:
