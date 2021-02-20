@@ -84,6 +84,7 @@ $(function () {
                     type: "success",
                 });
                 self.startButton.removeClass('hidden');
+                self.abortButton.addClass('hidden');
             }
         }
 
