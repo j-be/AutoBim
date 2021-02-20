@@ -10,6 +10,7 @@ from octoprint.printer import PrinterCallback
 
 
 class AutoBimError(Exception):
+
 	def __init__(self, message):
 		super(AutoBimError, self).__init__(message)
 		self.message = message
@@ -17,14 +18,22 @@ class AutoBimError(Exception):
 
 class LogParser(PrinterCallback):
 
-	def __init__(self, z_values, pattern=r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$"):
+	def __init__(self, z_values, pattern=r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$", logger=None):
 		self.z_values = z_values
 		self.pattern = pattern
+		self.logger = logger
 
 	def on_printer_add_message(self, data):
+		if self.logger:
+			self.logger.info("Got data '%s'" % data)
 		match = re.compile(self.pattern).match(data)
 		if match:
-			self.z_values.put(float(match.group(1)))
+			z_value = float(match.group(1))
+			self.logger.info("Match! Adding to queue: '%f'" % z_value)
+			self.z_values.put(z_value)
+			self.logger.info("Added")
+		else
+			self.logger.info("No match")
 
 
 class AutobimPlugin(
@@ -107,15 +116,16 @@ class AutobimPlugin(
 		self._printer.commands("G29 J")
 		# TODO: Use bed geometry
 		self._printer.commands("G30 X115 Y115")
-		self._logger.info("Waiting for center Z...")
 		try:
+			self._logger.info("Waiting for center Z...")
 			z_center = self.z_values.get(timeout=30)
 		except queue.Empty:
-			self._logger.error("Cannot get center Z")
-			raise AutoBimError("Cannot get center Z. Aborting")
+			self.abort("Cannot get center Z")
+			return
 
 		if not z_center:
-			raise AutoBimError("Cannot determine Z value for center")
+			self.abort("Cannot determine Z value for center")
+			return
 
 		# TODO: Use from settings
 		for corner in [(30, 30), (200, 30), (200, 200), (30, 200)]:
@@ -125,8 +135,8 @@ class AutobimPlugin(
 				try:
 					z_current = self.z_values.get(timeout=30)
 				except queue.Empty:
-					self._logger.error("Cannot get corner Z for corner %s" % str(corner))
-					raise AutoBimError("Cannot get center Z for corner %s. Aborting" % str(corner))
+					self.abort("Cannot get corner Z for corner %s" % str(corner))
+					return
 
 				self._printer.commands("M117 %s" % self.get_message(z_current - z_center))
 
@@ -142,6 +152,9 @@ class AutobimPlugin(
 			return "<" * get_count()
 		return "|"
 
+	def abort(self, msg):
+		self._logger.error(msg)
+		self._printer.commands("M117 msg")
 
 __plugin_name__ = "AutoBim"
 __plugin_pythoncompat__ = ">=2.7,<4"  # python 2 and 3
