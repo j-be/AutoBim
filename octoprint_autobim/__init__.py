@@ -74,6 +74,7 @@ class AutobimPlugin(
 		return dict(
 			start=[],
 			abort=[],
+			status=[],
 		)
 
 	def on_api_command(self, command, data):
@@ -85,9 +86,10 @@ class AutobimPlugin(
 			self._logger.info("Starting")
 			thread = threading.Thread(target=self.autobim)
 			thread.start()
-
-		if command == "abort":
-			self.abort_now("Aborted")
+		elif command == "abort":
+			self.abort_now("Aborted by user")
+		elif command == "status":
+			return dict(running=self.running), 200
 
 	##~~ Gcode received hook
 
@@ -114,6 +116,7 @@ class AutobimPlugin(
 
 	def autobim(self):
 		self.check_state()
+		self._plugin_manager.send_plugin_message(self._identifier, dict(type="started"))
 
 		self._printer.commands("M117 wait...")
 
@@ -133,7 +136,7 @@ class AutobimPlugin(
 					try:
 						z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
 					except queue.Empty:
-						self.abort_now("Cannot get corner Z for corner %s" % str(corner))
+						self.abort_now("Cannot get Z for corner %s" % str(corner))
 						return
 
 					if z_current:
@@ -141,10 +144,11 @@ class AutobimPlugin(
 					self._printer.commands("M117 %s" % self.get_message(z_current))
 		self._printer.commands("M117 done")
 		self.running = False
+		self._plugin_manager.send_plugin_message(self._identifier, dict(type="completed"))
 
 	def get_message(self, diff):
 		def get_count():
-			return min(abs(int(diff / 0.1)) + 1, 5)
+			return min(abs(int(diff / 0.025)) + 1, 5)
 
 		if diff < 0:
 			return "%.2f " % diff + "<" * get_count()
@@ -156,6 +160,7 @@ class AutobimPlugin(
 		self._logger.error(msg)
 		self._printer.commands("M117 %s" % msg)
 		self.running = False
+		self._plugin_manager.send_plugin_message(self._identifier, dict(type="aborted", message=msg))
 
 __plugin_name__ = "AutoBim"
 __plugin_pythoncompat__ = ">=2.7,<4"  # python 2 and 3
