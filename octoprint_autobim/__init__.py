@@ -24,16 +24,19 @@ class LogParser(PrinterCallback):
 		self.logger = logger
 
 	def on_printer_add_message(self, data):
-		if self.logger:
-			self.logger.info("Got data '%s'" % data)
+		self.log("Got data '%s'" % data)
 		match = re.compile(self.pattern).match(data)
 		if match:
 			z_value = float(match.group(1))
-			self.logger.info("Match! Adding to queue: '%f'" % z_value)
+			self.log("Match! Adding to queue: '%f'" % z_value)
 			self.z_values.put(z_value)
-			self.logger.info("Added")
-		else
-			self.logger.info("No match")
+			self.log("Added")
+		else:
+			self.log("No match")
+
+	def log(self, msg):
+		if self.logger:
+			self.logger.info(msg)
 
 
 class AutobimPlugin(
@@ -46,12 +49,12 @@ class AutobimPlugin(
 	def __init__(self):
 		super(AutobimPlugin, self).__init__()
 		self.z_values = queue.Queue(maxsize=1)
+		self.log_parser = None
 
 	##~~ StartupPlugin mixin
 
 	def on_after_startup(self):
 		self._logger.info("AutoBim *ring-ring*")
-		self._printer.register_callback(LogParser(self.z_values))
 
 	##~~ AssetPlugin mixin
 
@@ -109,6 +112,9 @@ class AutobimPlugin(
 
 	def autobim(self):
 		self.check_state()
+
+		self.log_parser = LogParser(self.z_values, logger=self._logger)
+		self._printer.register_callback(self.log_parser)
 		self._printer.commands("M117 wait...")
 
 		self._printer.home(["x", "y", "z"])
@@ -141,6 +147,7 @@ class AutobimPlugin(
 				self._printer.commands("M117 %s" % self.get_message(z_current - z_center))
 
 		self._printer.commands("done")
+		self._printer.unregister_callback(self.log_parser)
 
 	def get_message(self, diff):
 		def get_count():
@@ -154,7 +161,8 @@ class AutobimPlugin(
 
 	def abort(self, msg):
 		self._logger.error(msg)
-		self._printer.commands("M117 msg")
+		self._printer.commands("M117 %s" % msg)
+		self._printer.unregister_callback(self.log_parser)
 
 __plugin_name__ = "AutoBim"
 __plugin_pythoncompat__ = ">=2.7,<4"  # python 2 and 3
