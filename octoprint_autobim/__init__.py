@@ -139,10 +139,10 @@ class AutobimPlugin(
 			return min(abs(int(diff / 0.1)) + 1, 5)
 
 		if diff < 0:
-			return ">" * get_count()
-		elif diff < 0:
-			return "<" * get_count()
-		return "|"
+			return "%.2f " % diff + ">" * get_count()
+		elif diff > 0:
+			return "%.2f " % diff + "<" * get_count()
+		return "ok. moving to next"
 
 	def abort(self, msg):
 		self._logger.error(msg)
