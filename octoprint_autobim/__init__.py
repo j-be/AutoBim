@@ -121,12 +121,10 @@ class AutobimPlugin(
 		if not self.running:
 			return line
 
-		self._logger.info("process_gcode - Line: '%s' Comm: '%s'" % (comm, line))
 		try:
 			match = self.pattern.match(line)
 			if match:
 				z_value = float(match.group(1))
-				self._logger.info("Match! Adding to queue: '%f'" % z_value)
 				self.z_values.put(z_value)
 		except Exception as e:
 			self._logger.error("Error in process_gcode: %s" % str(e))
@@ -198,6 +196,7 @@ class AutobimPlugin(
 		self.running = False
 		self.z_values.put(None)
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="aborted", message=msg))
+
 
 __plugin_name__ = "AutoBim"
 __plugin_pythoncompat__ = ">=2.7,<4"  # python 2 and 3

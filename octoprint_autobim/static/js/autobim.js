@@ -110,7 +110,6 @@ $(function () {
                     });
                 },
                 success: function (data) {
-                    console.log(data);
                     if (data.running)
                         self.abortButton.removeClass('hidden');
                     else
