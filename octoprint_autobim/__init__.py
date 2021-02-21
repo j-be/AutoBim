@@ -104,6 +104,12 @@ class AutobimPlugin(
 
 	def get_settings_defaults(self):
 		return dict(
+			probe_points=[
+				dict(x="30", y="30"),
+				dict(x="30", y="200"),
+				dict(x="200", y="200"),
+				dict(x="200", y="30"),
+			],
 			invert=False,
 			multipass=True,
 			threshold=0.01,
@@ -111,7 +117,7 @@ class AutobimPlugin(
 
 	##~~ Gcode received hook
 
-	def process_gcode(self, comm, line, *args, **kwargs):
+	def process_gcode(self, _, line, *args, **kwargs):
 		if not self.running:
 			return line
 
@@ -149,11 +155,10 @@ class AutobimPlugin(
 
 		while changed and self.running:
 			changed = False
-			# TODO: Use from settings
-			for corner in [(30, 30), (200, 30), (200, 200), (30, 200)]:
+			for corner in self.get_probe_points():
 				z_current = 1
 				while z_current >= threshold and self.running:
-					self._printer.commands("G30 X%d Y%d" % corner)
+					self._printer.commands("G30 X%s Y%s" % corner)
 					try:
 						z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
 					except queue.Empty:
@@ -167,6 +172,10 @@ class AutobimPlugin(
 		self._printer.commands("M117 done")
 		self.running = False
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="completed"))
+
+	def get_probe_points(self):
+		points = self._settings.get(['probe_points'])
+		return [(p['x'], p['y']) for p in points]
 
 	def get_message(self, diff):
 		def get_count():

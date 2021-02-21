@@ -55,10 +55,12 @@ Defaults are for an Ender 3 sized printer and a BLTouch. You can configure:
   * Default: `Off`
 * Accuracy threshold
   * Default: `0.01`
+* Points to probe
+  * `(30, 30), (200, 30), (200, 200), (30, 200)` (Ender 3)
 
 Planned are (ordered by assumed priority):
 
-* Corner points - currently its hard-coded to an Ender 3's `(30, 30), (200, 30), (200, 200), (30, 200)`.
+* Allow for a different amount of probe points
 * Pattern for `G30` response parsing
 
 ## Why the name?

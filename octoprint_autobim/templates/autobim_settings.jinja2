@@ -1,4 +1,5 @@
 <form class="form-horizontal">
+    <legend>Main settings</legend>
     <div class="control-group">
         <label class="control-label">Invert arrows on display</label>
         <div class="controls">
@@ -11,6 +12,15 @@
         <label class="control-label">Accuracy threshold</label>
         <div class="controls">
             <input type="number" class="input-block-level" data-bind="value: settings.plugins.autobim.threshold" />
+        </div>
+    </div>
+    <div class="control-group">
+        <legend>Points to probe</legend>
+        <div class="controls" data-bind="foreach: settings.plugins.autobim.probe_points">
+            <div class="row">
+                <div class="span6"><span>X&nbsp;</span><input type="number" data-bind="value: x"></div>
+                <div class="span6"><span>Y&nbsp;</span><input type="number" data-bind="value: y"></div>
+            </div>
         </div>
     </div>
 </form>
