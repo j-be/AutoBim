@@ -164,6 +164,9 @@ class AutobimPlugin(
 					except queue.Empty:
 						self.abort_now("Cannot get Z for corner %s" % str(corner))
 						return
+					if z_current is None:
+						self._logger.info("'None' from queue means user abort")
+						return
 
 					if z_current >= threshold and multipass:
 						changed = True
@@ -193,6 +196,7 @@ class AutobimPlugin(
 		self._logger.error(msg)
 		self._printer.commands("M117 %s" % msg)
 		self.running = False
+		self.z_values.put(None)
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="aborted", message=msg))
 
 __plugin_name__ = "AutoBim"
