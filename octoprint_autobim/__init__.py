@@ -156,8 +156,8 @@ class AutobimPlugin(
 		while changed and self.running:
 			changed = False
 			for corner in self.get_probe_points():
-				z_current = 1
-				while z_current >= threshold and self.running:
+				z_current = 1_000
+				while abs(z_current) >= threshold and self.running:
 					self._printer.commands("G30 X%s Y%s" % corner)
 					try:
 						z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
