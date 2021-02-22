@@ -150,7 +150,7 @@ class AutobimPlugin(
 
 		self.running = True
 		changed = True
-		threshold = self._settings.get_boolean(["threshold"])
+		threshold = self._settings.get_float(["threshold"])
 		multipass = self._settings.get_boolean(["multipass"])
 
 		while changed and self.running:
@@ -168,7 +168,7 @@ class AutobimPlugin(
 						self._logger.info("'None' from queue means user abort")
 						return
 
-					if z_current >= threshold and multipass:
+					if abs(z_current) >= threshold and multipass:
 						changed = True
 					self._printer.commands("M117 %s" % self.get_message(z_current))
 
