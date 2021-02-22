@@ -156,7 +156,7 @@ class AutobimPlugin(
 		while changed and self.running:
 			changed = False
 			for corner in self.get_probe_points():
-				z_current = 1_000
+				z_current = 1000
 				while abs(z_current) >= threshold and self.running:
 					self._printer.commands("G30 X%s Y%s" % corner)
 					try:
