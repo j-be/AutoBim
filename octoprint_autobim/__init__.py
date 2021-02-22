@@ -143,6 +143,8 @@ class AutobimPlugin(
 		self._printer.commands("M117 wait...")
 
 		self._printer.home(["x", "y", "z"])
+		# Move up to avoid bed collisions
+		self._printer.commands("G0 Z20")
 		# Jettison saved mesh
 		self._printer.commands("G29 J")
 
