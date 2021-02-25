@@ -6,6 +6,7 @@ import threading
 import re
 
 import octoprint.plugin
+from flask import jsonify
 from flask_login import current_user
 
 
@@ -98,7 +99,7 @@ class AutobimPlugin(
 		elif command == "abort":
 			self.abort_now("Aborted by user")
 		elif command == "status":
-			return dict(running=self.running), 200
+			return jsonify({"running": self.running}), 200
 
 	##~~ SettingsPlugin mixin
 
