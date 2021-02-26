@@ -120,16 +120,35 @@ where it goes wrong, how, and (if you have a suspicion) why.
 
 ## Troubleshooting
 
-### Works fine on the first corner, display says `ok. moving to next` but nothing happens
+### Works fine on the first (or first and second corner), display says `ok. moving to next` but nothing happens
 
-Most likely that means the printer cannot reach the point because it would move beyond the `X_MAX_POS` set in the
-firmware. For most builds this will default to `X_BED_SIZE`, but on most printers it should be possible to raise this a
-little bit, e.g. for an Ender 3 Pro this can be set to 245 as it can easily move the nozzle 10mm left of the bed. It
-won't ever print there - that's what `X_BED_SIZE` is for - but moving there, e.g. for probing, is fine.
+Most likely that means the printer cannot reach the point set in *Points to probe* because it would need move beyond
+what it considers to be its moving range. This is a feature known as "software endstops" in Marlin.
+
+For your X axis, the most likely issue is `X_MAX_POS` set in the firmware. For most builds this will default to
+`X_BED_SIZE`, but on most printers it should be possible to raise this a little bit, e.g. on my Ender 3 Pro this can be
+set to 245 as it can easily move the nozzle 10mm left of the bed. It won't ever print there - that's what `X_BED_SIZE`
+is for - but moving there temporarily, e.g. for probing, is fine. The same applies to `Y`, but I did not have the need
+to alter that yet (will update here if I ever do).
+
+Another reason could be, that `PROBING_MARGIN` in your firmware is set to something, that makes no sense. E.g. I heard
+Ender 6 stock firmware seems to set `Y_BED_SIZE` to 260, the bed is 290 in depth, and Creality - in there infinite
+wisdom - still seems to have decided to apply an additional `PROBING_MARGIN` of 30. This effectively makes 230 the
+maximum usable Y coordinate for probing.
 
 As to why the plugin doesn't react to this condition: At least on my machine there is no indication on the log, that the
 printer can't do what it was told. I get an `ok`, which I find misleading at least. If you have an idea on how to catch
 this error, which doesn't involve timing the response time on a `G30`, feel free to open an issue for that.
+
+I found the following sequence in OctoPrint's Terminal to work well. Assuming you'd like to find the maximum `Y` value:
+
+* `G28`; Home the printer
+* `G0 Z20`; Raise hotend to Z=20 to avoid collisions while moving
+* `G30 X30 Y195`; Tell printer to probe X=30 Y=195
+  * If printer doesn't move try `G30 X30 Y190`
+  * If printer moves try `G30 X30 Y192`
+* ... and so on, until you found the maximum Y value
+* Take that value and use it as the upper Y value in *Points to probe*
 
 Also, please check out if #2 sounds like a good solution to the problem, and give it a thumbs up or thumbs down
 respectively. Please don't comment to `+1`, I'd appreciate it.
