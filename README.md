@@ -51,6 +51,10 @@ or manually using this URL:
 
     https://github.com/j-be/AutoBim/archive/master.zip
 
+**Hint:** Keep your hands away from the printer whenever possible. This not only reduces the risk of your hand colliding
+with the knob (and thus putting it out of level again) because the printer suddenly moves. It also seems to increase
+measurement accuracy, at least of my BL Touch. So: wait, adjust, hands off, wait, adjust, hands off, ...
+
 ## Preparation
 
 ### Check XY Probe Offset
@@ -126,6 +130,9 @@ won't ever print there - that's what `X_BED_SIZE` is for - but moving there, e.g
 As to why the plugin doesn't react to this condition: At least on my machine there is no indication on the log, that the
 printer can't do what it was told. I get an `ok`, which I find misleading at least. If you have an idea on how to catch
 this error, which doesn't involve timing the response time on a `G30`, feel free to open an issue for that.
+
+Also, please check out if #2 sounds like a good solution to the problem, and give it a thumbs up or thumbs down
+respectively. Please don't comment to `+1`, I'd appreciate it.
 
 As a **last resort** and if you have **no other possibility** you may consider temporarily disabling endstops in Marlin
 using the `M121` command. Doing that could cause serious damage to your bed or printer, so once you did that **always
