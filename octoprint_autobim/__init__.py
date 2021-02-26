@@ -1,14 +1,18 @@
 # coding=utf-8
 from __future__ import absolute_import
 
-import queue
+import sys
+
+if sys.version[0] == '2':
+	import Queue as queue
+else:
+	import queue
 import threading
 import re
 
 import octoprint.plugin
 from flask import jsonify
 from flask_login import current_user
-
 
 QUEUE_TIMEOUT = 180
 
