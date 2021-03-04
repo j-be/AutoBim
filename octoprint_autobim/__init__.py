@@ -207,8 +207,10 @@ class AutobimPlugin(
 
 		invert = self._settings.get_boolean(['invert'])
 		if invert ^ (diff < 0):
-			return "%.2f " % diff + "<" * get_count()
-		return "%.2f " % diff + ">" * get_count()
+			msg = "%.2f " % diff + "<" * get_count()
+		else:
+			msg = "%.2f " % diff + ">" * get_count()
+		return msg + " (please adjust)"
 
 	def abort_now(self, msg):
 		self._logger.error(msg)
