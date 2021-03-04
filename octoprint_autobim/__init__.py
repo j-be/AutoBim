@@ -78,9 +78,12 @@ class AutobimPlugin(
 	##~~ TemplatePlugin mixin
 
 	def get_template_configs(self):
-		return [
-			dict(type="settings", custom_bindings=False)
+		templates = [
+			dict(type="settings", custom_bindings=False),
 		]
+		if self._settings.get_boolean(["button_in_navbar"]):
+			templates = templates + [dict(type="navbar", template="autobim_button.jinja2")]
+		return templates
 
 	##~~ SimpleApiPlugin mixin
 
@@ -118,7 +121,17 @@ class AutobimPlugin(
 			invert=False,
 			multipass=True,
 			threshold=0.01,
+			button_in_navbar=True,
 		)
+
+	def on_settings_save(self, data):
+		old_button_in_navbar = self._settings.get_boolean(["button_in_navbar"])
+
+		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+
+		new_button_in_navbar = self._settings.get_boolean(["sub", "some_flag"])
+		if old_button_in_navbar != new_button_in_navbar:
+			pass
 
 	##~~ Gcode received hook
 

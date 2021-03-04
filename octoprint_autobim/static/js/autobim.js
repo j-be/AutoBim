@@ -89,9 +89,9 @@ $(function () {
         }
 
         self.onBeforeBinding = function () {
-            self.startButton = $('#startAutoBimButton');
+            self.startButton = $('.startAutoBimButton');
             self.startButton.click(self.startAutoBim);
-            self.abortButton = $('#abortAutoBimButton');
+            self.abortButton = $('.abortAutoBimButton');
             self.abortButton.click(self.abortAutoBim);
 
             $.ajax({

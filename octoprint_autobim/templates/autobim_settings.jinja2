@@ -1,6 +1,10 @@
+<div style="float: right">
+    <button class="startAutoBimButton btn btn-primary hidden"><i class="fa fa-train"> Start AutoBim</i></button>
+    <button class="abortAutoBimButton btn btn-secondary hidden"><i class="fa fa-stop-circle"> Abort AutoBim</i></button>
+</div>
 <form class="form-horizontal">
-    <legend>Main settings</legend>
     <div class="control-group">
+        <legend>Main settings</legend>
         <label class="control-label">Invert arrows on display</label>
         <div class="controls">
             <input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.autobim.invert" />
@@ -11,9 +15,10 @@
         </div>
         <label class="control-label">Accuracy threshold</label>
         <div class="controls">
-            <input type="number" class="span3 input-block-level" data-bind="value: settings.plugins.autobim.threshold" />
+            <input type="number" step="0.01" class="span3 input-block-level" data-bind="value: settings.plugins.autobim.threshold" />
         </div>
     </div>
+
     <div class="control-group">
         <legend>Points to probe</legend>
         <div class="controls" data-bind="foreach: settings.plugins.autobim.probe_points">
@@ -22,5 +27,14 @@
                 <div class="span6"><span>Y&nbsp;</span><input type="number" data-bind="value: y"></div>
             </div>
         </div>
+    </div>
+
+    <div class="control-group">
+        <legend>UI</legend>
+        <label class="control-label">Show button in Navbar</label>
+        <div class="controls">
+            <input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.autobim.button_in_navbar" />
+        </div>
+        <small>Needs OctoPrint restart to take effect.</small>
     </div>
 </form>
