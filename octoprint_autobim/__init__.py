@@ -151,8 +151,10 @@ class AutobimPlugin(
 	##~~ Plugin implementation
 
 	def check_state(self):
-		if not self._printer.is_operational() or self._printer.is_printing():
-			raise AutoBimError("Can't set the temperature because the printer is not ready.")
+		if not self._printer.is_operational():
+			raise AutoBimError("Can't start AutoBim - printer is not operational!")
+		if self._printer.is_printing():
+			raise AutoBimError("Can't start AutoBim - printer is printing!")
 
 	def autobim(self):
 		self.check_state()
