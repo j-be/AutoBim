@@ -204,6 +204,11 @@ Additionally, keep in mind that changing one of the corners may affect other cor
 does the multi-pass in the first place. The closer your probe points are to the set screws, the less the influence. So
 you may want to spend a little time getting those right.
 
+## Printer does a 3-point leveling at start of tramming
+
+This means your firmware was compiled with [Unified Bed Leveling](https://marlinfw.org/docs/features/unified_bed_leveling.html).
+Open the plugin settings and check the `UBL (Unified Bed Leveling)` checkbox.
+
 ## Why is it so slow? Why doesn't the plugin read `some value` from the printer?
 
 Unfortunately, all parameters referring to probing seem to be hardcoded in Marlin and are not readable via GCode. It

@@ -122,6 +122,7 @@ class AutobimPlugin(
 			multipass=True,
 			threshold=0.01,
 			button_in_navbar=True,
+			has_ubl=False,
 		)
 
 	def on_settings_save(self, data):
@@ -174,7 +175,7 @@ class AutobimPlugin(
 		# Move up to avoid bed collisions
 		self._printer.commands("G0 Z20")
 		# Jettison saved mesh
-		self._printer.commands("G29 J")
+		self._clear_saved_mesh()
 
 		self.running = True
 		changed = True
@@ -229,6 +230,11 @@ class AutobimPlugin(
 		self.z_values.put(None)
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="aborted", message=msg))
 
+	def _clear_saved_mesh(self):
+		if self._settings.get_boolean(["has_ubl"]):
+			self._printer.commands("G29 P0")
+		else:
+			self._printer.commands("G29 J")
 
 __plugin_name__ = "AutoBim"
 __plugin_pythoncompat__ = ">=2.7,<4"  # python 2 and 3
