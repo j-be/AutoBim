@@ -156,6 +156,14 @@ class AutobimPlugin(
 
 	def autobim(self):
 		self.check_state()
+
+		# Flush queue
+		try:
+			while not self.z_values.empty():
+				self.z_values.get_nowait()
+		except queue.Empty:
+			pass
+
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="started"))
 
 		self._printer.commands("M117 wait...")
