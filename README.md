@@ -128,8 +128,8 @@ what it considers to be its moving range. This is a feature known as "software e
 For your X axis, the most likely issue is `X_MAX_POS` set in the firmware. For most builds this will default to
 `X_BED_SIZE`, but on most printers it should be possible to raise this a little bit, e.g. on my Ender 3 Pro this can be
 set to 245 as it can easily move the nozzle 10mm left of the bed. It won't ever print there - that's what `X_BED_SIZE`
-is for - but moving there temporarily, e.g. for probing, is fine. The same applies to `Y`, but I did not have the need
-to alter that yet (will update here if I ever do).
+is for - but moving there temporarily, e.g. for probing, is fine. The same applies to `Y`, i.e. on an Ender 3 Pro you
+can set it to 240.
 
 Another reason could be, that `PROBING_MARGIN` in your firmware is set to something, that makes no sense. E.g. I heard
 Ender 6 stock firmware seems to set `Y_BED_SIZE` to 260, the bed is 290 in depth, and Creality - in there infinite
