@@ -85,6 +85,17 @@ $(function () {
                 });
                 self.startButton.removeClass('hidden');
                 self.abortButton.addClass('hidden');
+            } else if (data.type === "warn") {
+                new PNotify({
+                    title: "AutoBim",
+                    text: data.message,
+                });
+            } else if (data.type === "info") {
+                new PNotify({
+                    title: "AutoBim",
+                    text: data.message,
+                    type: "info",
+                });
             }
         }
 
