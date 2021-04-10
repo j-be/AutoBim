@@ -1,2 +1,6 @@
-<button class="startAutoBimButton btn btn-primary hidden"><i class="fa fa-train"></i></button>
-<button class="abortAutoBimButton btn btn-secondary hidden"><i class="fa fa-stop-circle"></i></button>
+<button class="btn btn-primary" data-bind="hidden: autoBimRunning, click: startAutoBim, enable: connection.isReady">
+    <i class="fa fa-train"></i>
+</button>
+<button class="btn btn-secondary" data-bind="visible: autoBimRunning, click: abortAutoBim">
+    <i class="fa fa-stop-circle"></i>
+</button>

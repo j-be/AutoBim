@@ -81,7 +81,7 @@ class AutobimPlugin(
 
 	def get_template_configs(self):
 		templates = [
-			dict(type="settings", custom_bindings=False),
+			dict(type="settings", custom_bindings=True),
 		]
 		if self._settings.get_boolean(["button_in_navbar"]):
 			templates = templates + [dict(type="navbar", template="autobim_button.jinja2")]

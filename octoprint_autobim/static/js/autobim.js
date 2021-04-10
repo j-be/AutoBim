@@ -7,16 +7,13 @@
 $(function () {
     function AutobimViewModel(parameters) {
         let self = this;
-        self.settings = parameters[0];
-        self.startButton = null;
-        self.abortButton = null;
+        self.connection = parameters[0];
+        self.settings = parameters[1];
+        self.autoBimRunning = ko.observable(false);
 
         console.log("AutoBim *ring-ring*");
 
         self.startAutoBim = function () {
-            console.log("AutoBim starting");
-            self.startButton.addClass('hidden');
-
             $.ajax({
                 url: API_BASEURL + "plugin/autobim",
                 type: "POST",
@@ -37,9 +34,6 @@ $(function () {
         };
 
         self.abortAutoBim = function () {
-            console.log("Aborting AutoBim");
-            self.abortButton.addClass('hidden');
-
             $.ajax({
                 url: API_BASEURL + "plugin/autobim",
                 type: "POST",
@@ -69,22 +63,21 @@ $(function () {
                     text: "Please look at the printer's screen",
                     type: "success",
                 });
-                self.abortButton.removeClass('hidden');
+                self.autoBimRunning(true);
             } else if (data.type === "aborted") {
                 new PNotify({
                     title: "AutoBim aborted",
                     text: data.message,
                     type: "error",
                 });
-                self.startButton.removeClass('hidden');
+                self.autoBimRunning(false);
             } else if (data.type === "completed") {
                 new PNotify({
                     title: "AutoBim completed",
                     text: "Bed should be horizontal now",
                     type: "success",
                 });
-                self.startButton.removeClass('hidden');
-                self.abortButton.addClass('hidden');
+                self.autoBimRunning(false);
             } else if (data.type === "warn") {
                 new PNotify({
                     title: "AutoBim",
@@ -100,11 +93,6 @@ $(function () {
         }
 
         self.onBeforeBinding = function () {
-            self.startButton = $('.startAutoBimButton');
-            self.startButton.click(self.startAutoBim);
-            self.abortButton = $('.abortAutoBimButton');
-            self.abortButton.click(self.abortAutoBim);
-
             $.ajax({
                 url: API_BASEURL + "plugin/autobim",
                 type: "POST",
@@ -121,10 +109,7 @@ $(function () {
                     });
                 },
                 success: function (data) {
-                    if (data.running)
-                        self.abortButton.removeClass('hidden');
-                    else
-                        self.startButton.removeClass('hidden');
+                    self.autoBimRunning(data.running);
                 }
             });
         };
@@ -137,8 +122,8 @@ $(function () {
     OCTOPRINT_VIEWMODELS.push({
         construct: AutobimViewModel,
         // ViewModels your plugin depends on, e.g. loginStateViewModel, settingsViewModel, ...
-        dependencies: [ /* "loginStateViewModel", "settingsViewModel" */],
+        dependencies: [ "connectionViewModel", "settingsViewModel" ],
         // Elements to bind to, e.g. #settings_plugin_autobim, #tab_plugin_autobim, ...
-        elements: [ /* ... */]
+        elements: [ "#navbar_plugin_autobim", "#settings_plugin_autobim" ]
     });
 });
