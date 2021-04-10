@@ -167,16 +167,14 @@ class AutobimPlugin(
 			self._plugin_manager.send_plugin_message(self._identifier, dict(
 				type="info",
 				message="Seems like no UBL system is active! If so, please change the setting."))
-			self._settings.set_boolean(["has_ubl"], False)
-			self._settings.save()
+			self._set_ubl_flag(False)
 			self.stop_m503()
 			return
 		if "Unified Bed Leveling System" in line:
 			self._plugin_manager.send_plugin_message(self._identifier, dict(
 				type="info",
 				message="Seems like UBL system is active! If not, please change the setting."))
-			self._settings.set_boolean(["has_ubl"], True)
-			self._settings.save()
+			self._set_ubl_flag(True)
 			self.stop_m503()
 			return
 
@@ -185,9 +183,12 @@ class AutobimPlugin(
 		self._plugin_manager.send_plugin_message(self._identifier, dict(
 			type="warn",
 			message="Cannot determine whether UBL is active or not! Assuming it isn't. If it is, please set it manually in the settings."))
-		self._settings.set_boolean(["has_ubl"], False)
-		self._settings.save()
+		self._set_ubl_flag(False)
 		return
+
+	def _set_ubl_flag(self, value):
+		self._settings.set_boolean(["has_ubl"], value)
+		self._settings.save()
 
 	##~~ Plugin implementation
 
