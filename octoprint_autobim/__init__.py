@@ -188,7 +188,7 @@ class AutobimPlugin(
 
 	def _set_ubl_flag(self, value):
 		self._settings.set_boolean(["has_ubl"], value)
-		self._settings.save()
+		self._settings.save(trigger_event=True)
 
 	##~~ Plugin implementation
 
