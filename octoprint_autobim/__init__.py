@@ -294,7 +294,7 @@ class AutobimPlugin(
 
 	def _clear_saved_mesh(self):
 		if self._settings.get_boolean(["has_ubl"]):
-			self._printer.commands("G29 P0")
+			self._printer.commands("G29 D")
 		else:
 			self._printer.commands("G29 J")
 
