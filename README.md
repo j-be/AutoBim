@@ -90,6 +90,8 @@ Defaults are for an Ender 3 sized printer and a BLTouch. You can configure:
   * Default: `0.01`
 * Unified Bed Leveling - Enable this if your firmware was compiled with UBL
   * Default: `False`
+* Delay between corners - Wait the given amount of seconds before moving to next corner
+  * Default: `0.0`
 * Points to probe
   * Default: `(30, 30), (200, 30), (200, 200), (30, 200)` (Ender 3)
   * Note: These coordinates refer to *probe* position, while most other coordinates (e.g. what is displayed on screen)
@@ -116,6 +118,7 @@ the navbar:
 | 4 | Display difference and direction to rotate the knob | Turn the leveling wheel/knob/lever | e.g. `0.16 >>>>>` for 0.16mm to high, turn right (i.e. counter-clockwise) to correct |
 | 5 | Printer goes on probing until the difference is within threshold | Turn the leveling wheel/knob/lever | e.g. `-0.01 <` for 0.01mm to low, turn left (i.e. clockwise) to correct              |
 | 6 | Measurement is within threshold | | `ok. moving to next` |
+| 6.5 | If "Delay before moving to next corner" is set, wait for that amount | | `ok. moving to next` |
 | 7 | If full round completed without a difference, we are done | | `done.`
 | | Else, go to *Step 3* for the next corner | | `ok. moving to next` |
 
