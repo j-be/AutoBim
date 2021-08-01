@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 import sys
+import time
 
 if sys.version[0] == '2':
 	import Queue as queue
@@ -125,6 +126,7 @@ class AutobimPlugin(
 			threshold=0.01,
 			button_in_navbar=True,
 			has_ubl=None,
+			next_point_delay=0.0,
 		)
 
 	def on_settings_save(self, data):
@@ -243,6 +245,7 @@ class AutobimPlugin(
 		changed = True
 		threshold = self._settings.get_float(["threshold"])
 		multipass = self._settings.get_boolean(["multipass"])
+		next_point_delay = self._settings.get_float(["next_point_delay"])
 
 		while changed and self.running:
 			changed = False
@@ -262,6 +265,9 @@ class AutobimPlugin(
 					if abs(z_current) >= threshold and multipass:
 						changed = True
 					self._printer.commands("M117 %s" % self.get_message(z_current))
+
+				if next_point_delay:
+					time.sleep(next_point_delay)
 
 		self._printer.commands("M117 done")
 		self.running = False
