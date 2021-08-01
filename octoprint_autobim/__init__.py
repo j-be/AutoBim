@@ -264,7 +264,9 @@ class AutobimPlugin(
 
 					if abs(z_current) >= threshold and multipass:
 						changed = True
-					self._printer.commands("M117 %s" % self.get_message(z_current))
+						self._printer.commands("M117 %s" % self.get_message(z_current))
+					else:
+						self._printer.commands("M117 %s" % self.get_message())
 
 				if next_point_delay:
 					time.sleep(next_point_delay)
@@ -277,7 +279,7 @@ class AutobimPlugin(
 		points = self._settings.get(['probe_points'])
 		return [(p['x'], p['y']) for p in points]
 
-	def get_message(self, diff):
+	def get_message(self, diff=None):
 		def get_count():
 			return min(abs(int(diff / 0.025)) + 1, 5)
 
