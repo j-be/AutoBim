@@ -82,19 +82,19 @@ If it probed the point your printer is correctly set up. If not, check out
 
 Defaults are for an Ender 3 sized printer and a BLTouch. You can configure:
 
-* Enable/Disable multi-pass (i.e. go on until a full round measures ok)
-  * Default: `On`
 * Invert arrows on display, e.g. for inverse screw threads on the adjustment screws
   * Default: `Off`
+* Enable/Disable multi-pass (i.e. go on until a full round measures ok)
+  * Default: `On`
 * Accuracy threshold
   * Default: `0.01`
+* Unified Bed Leveling - Enable this if your firmware was compiled with UBL
+  * Default: `False`
 * Points to probe
   * Default: `(30, 30), (200, 30), (200, 200), (30, 200)` (Ender 3)
   * Note: These coordinates refer to *probe* position, while most other coordinates (e.g. what is displayed on screen)
     refer to *nozzle* position. Try to use the points exactly above the set screws if that is possible (see **Works fine
     on the first corner, display says `ok. moving to next` but nothing happens** below) or get as close as possible.
-* UBL (Unified Bed Leveling) - Enable this if your firmware was compiled with UBL
-  * Default: `False`
 * Show button in Navbar
   * Default: `True`
 
