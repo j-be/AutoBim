@@ -151,6 +151,14 @@ class AutobimPlugin(
 
 		return line
 
+	##~~ AtCommand hook
+
+	def atcommand_handler(self, comm, phase, command, parameters, tags=None, *args, **kwargs):
+		if command != "AUTOBIM":
+			return
+		thread = threading.Thread(target=self.autobim)
+		thread.start()
+
 	def _process_z_value(self, line):
 		try:
 			match = self.pattern.match(line)
@@ -318,4 +326,5 @@ def __plugin_load__():
 	__plugin_hooks__ = {
 		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
 		"octoprint.comm.protocol.gcode.received": __plugin_implementation__.process_gcode,
+		"octoprint.comm.protocol.atcommand.queuing": __plugin_implementation__.atcommand_handler,
 	}
