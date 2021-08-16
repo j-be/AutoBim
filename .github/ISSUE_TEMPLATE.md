@@ -2,10 +2,9 @@ Please remove all sections not relevant to this issue (including this statement)
 
 ## Bug report
 
-Please make sure you are not trying to report
-[this known issue](https://github.com/j-be/AutoBim#works-fine-on-the-first-or-first-and-second-corner-display-says-ok-moving-to-next-but-nothing-happens).
-I know it is an issue for many, and it is [on the roadmap](https://github.com/j-be/AutoBim/issues/2), but unfortunately
-it isn't an easy fix.
+Please do not report the "Works fine on the first (or first and second corner), display says 'ok. moving to next' but
+nothing happens" bug. This is covered in detail in the "Troubleshooting" section of the README. I know it is an issue
+for many, and it is on the roadmap, but unfortunately it isn't an easy fix.
 
 ### Description
 
