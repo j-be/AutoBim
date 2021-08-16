@@ -157,8 +157,8 @@ I found the following sequence in OctoPrint's Terminal to work well. Assuming yo
 * ... and so on, until you found the maximum Y value
 * Take that value and use it as the upper Y value in *Points to probe*
 
-Also, please check out if #2 sounds like a good solution to the problem, and give it a thumbs up or thumbs down
-respectively. Please don't comment to `+1`, I'd appreciate it.
+Also, please check out if [#2](https://github.com/j-be/AutoBim/issues/2) sounds like a good solution to the problem, and
+give it a thumbs up or thumbs down respectively. Please don't comment to `+1`, I'd appreciate it.
 
 As a **last resort** and if you have **no other possibility** you may consider temporarily disabling endstops in Marlin
 using the `M121` command. Doing that could cause serious damage to your bed or printer, so once you did that **always
