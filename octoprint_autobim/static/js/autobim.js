@@ -52,6 +52,46 @@ $(function () {
             });
         };
 
+        self.home = function (corner) {
+            $.ajax({
+                url: API_BASEURL + "plugin/autobim",
+                type: "POST",
+                dataType: "json",
+                data: JSON.stringify({
+                    command: "home"
+                }),
+                contentType: "application/json; charset=UTF-8",
+                error: function (data, _) {
+                    new PNotify({
+                        title: "Homing failed.",
+                        text: data.responseText,
+                        type: "error"
+                    });
+                }
+            });
+        }
+
+        self.testCorner = function (corner) {
+            $.ajax({
+                url: API_BASEURL + "plugin/autobim",
+                type: "POST",
+                dataType: "json",
+                data: JSON.stringify({
+                    command: "test_corner",
+                    x: corner.x(),
+                    y: corner.y()
+                }),
+                contentType: "application/json; charset=UTF-8",
+                error: function (data, _) {
+                    new PNotify({
+                        title: "Testing failed.",
+                        text: data.responseText,
+                        type: "error"
+                    });
+                }
+            });
+        }
+
         /* OctoPrint Hooks */
 
         self.onDataUpdaterPluginMessage = function(plugin, data) {

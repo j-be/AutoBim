@@ -95,6 +95,8 @@ class AutobimPlugin(
 			start=[],
 			abort=[],
 			status=[],
+			home=[],
+			test_corner=[],
 		)
 
 	def on_api_command(self, command, data):
@@ -110,6 +112,14 @@ class AutobimPlugin(
 			self.abort_now("Aborted by user")
 		elif command == "status":
 			return jsonify({"running": self.running}), 200
+		elif command == "home":
+			self._printer.home(["x", "y", "z"])
+			return jsonify({}), 200
+		elif command == "test_corner":
+			# TODO: Try to evaluate if it worked
+			self._logger.info("Got %s" % data)
+			self._printer.commands("G30 X%s Y%s" % (data['x'], data['y']))
+			return jsonify({}), 200
 
 	##~~ SettingsPlugin mixin
 

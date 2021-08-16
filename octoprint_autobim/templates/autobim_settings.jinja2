@@ -34,12 +34,25 @@
 
     <div class="control-group">
         <legend>Points to probe</legend>
+        <p>
+            Don't forget to <button class="btn btn-primary" data-bind="click: home">Home</button> your printer before
+            using the "Test" buttons below.
+        </p>
         <div class="controls" data-bind="foreach: settings.settings.plugins.autobim.probe_points">
-            <div class="row">
-                <div class="span6"><span>X&nbsp;</span><input type="number" data-bind="value: x"></div>
-                <div class="span6"><span>Y&nbsp;</span><input type="number" data-bind="value: y"></div>
+            <div class="row" style="margin-bottom: 14px">
+                <div class="span6">
+                    <span>X&nbsp;</span><input style="max-width: 60px" type="number" data-bind="value: x">
+                    <span>Y&nbsp;</span><input style="max-width: 60px" type="number" data-bind="value: y">
+                </div>
+                <div class="span4"><button class="btn btn-secondary" data-bind="click: $parent.testCorner">Test</button></div>
             </div>
         </div>
+        <p><span class="help-block">
+            The best choice is the locations of the tramming screws. It is necessary that the printer is able to reach
+            the points with the probe. You may use the "Test" buttons below to check the individual points: if the
+            printer probes it the point is fine. If the printer does nothing that means it cannot reach the point. You
+            should try to change the coordinates until it does.
+        </span></p>
     </div>
 
     <div class="control-group">
