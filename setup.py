@@ -14,7 +14,7 @@ plugin_package = "octoprint_autobim"
 plugin_name = "AutoBim"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "0.1.8-dev"
+plugin_version = "0.1.8"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
