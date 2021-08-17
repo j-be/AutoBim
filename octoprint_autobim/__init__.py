@@ -298,18 +298,15 @@ class AutobimPlugin(
 		return [(p['x'], p['y']) for p in points]
 
 	def get_message(self, diff=None):
-		def get_count():
-			return min(abs(int(diff / 0.025)) + 1, 5)
-
 		if not diff:
 			return "ok. moving to next"
 
 		invert = self._settings.get_boolean(['invert'])
 		if invert ^ (diff < 0):
-			msg = "%.2f " % diff + "<" * get_count()
+			msg = "%.2f " % diff + "<<<"
 		else:
-			msg = "%.2f " % diff + ">" * get_count()
-		return msg + " (please adjust)"
+			msg = "%.2f " % diff + ">>>"
+		return msg + " (adjust)"
 
 	def abort_now(self, msg):
 		self._logger.error(msg)
