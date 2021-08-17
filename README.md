@@ -115,8 +115,8 @@ the navbar:
 | 1 | Home | | `wait...` |
 | 2 | Raise to Z=20 | | `wait...` |
 | 3 | Go to corner point and probe | | `wait...` |
-| 4 | Display difference and direction to rotate the knob | Turn the leveling wheel/knob/lever | e.g. `0.16 >>>>>` for 0.16mm to high, turn right (i.e. counter-clockwise) to correct |
-| 5 | Printer goes on probing until the difference is within threshold | Turn the leveling wheel/knob/lever | e.g. `-0.01 <` for 0.01mm to low, turn left (i.e. clockwise) to correct              |
+| 4 | Display difference and direction to rotate the knob | Turn the leveling wheel/knob/lever | e.g. `0.16 >>> (adjust)` for 0.16mm to high, turn right (i.e. counter-clockwise) to correct |
+| 5 | Printer goes on probing until the difference is within threshold | Turn the leveling wheel/knob/lever | e.g. `-0.01 <<< (adjust)` for 0.01mm to low, turn left (i.e. clockwise) to correct              |
 | 6 | Measurement is within threshold | | `ok. moving to next` |
 | 6.5 | If "Delay before moving to next corner" is set, wait for that amount | | `ok. moving to next` |
 | 7 | If full round completed without a difference, we are done | | `done.`
