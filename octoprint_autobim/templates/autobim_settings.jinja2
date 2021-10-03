@@ -34,6 +34,13 @@
 
     <div class="control-group">
         <legend>Points to probe</legend>
+        <label class="control-label">First corner is reference (experimental)</label>
+        <div class="controls">
+            <input type="checkbox" class="input-block-level" data-bind="checked: settings.settings.plugins.autobim.first_corner_is_reference" />
+            <span class="help-block">
+                If the above is checked, the first point in the list is treated as reference. Else Z=0 is reference.
+            </span>
+        </div>
         <p>
             Don't forget to <button class="btn btn-primary" data-bind="click: home">Home</button> your printer before
             using the "Test" buttons below.

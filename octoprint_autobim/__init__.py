@@ -137,6 +137,7 @@ class AutobimPlugin(
 			button_in_navbar=True,
 			has_ubl=None,
 			next_point_delay=0.0,
+			first_corner_is_reference=False,
 		)
 
 	def on_settings_save(self, data):
@@ -265,29 +266,48 @@ class AutobimPlugin(
 		multipass = self._settings.get_boolean(["multipass"])
 		next_point_delay = self._settings.get_float(["next_point_delay"])
 
+		# Default reference is Z=0
+		if self._settings.get_boolean(["first_corner_is_reference"]):
+			reference = None
+		else:
+			reference = 0
+
 		while changed and self.running:
 			changed = False
-			for corner in self.get_probe_points():
-				z_current = 1000
-				while abs(z_current) >= threshold and self.running:
+			for index, corner in enumerate(self.get_probe_points()):
+				if reference is None:
+					self._logger.info("Treating first corner as reference")
+					self._printer.commands("M117 Getting reference...")
 					self._printer.commands("G30 X%s Y%s" % corner)
 					try:
-						z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
+						reference = self.z_values.get(timeout=QUEUE_TIMEOUT)
 					except queue.Empty:
 						self.abort_now("Cannot get Z for corner %s" % str(corner))
 						return
-					if z_current is None:
-						self._logger.info("'None' from queue means user abort")
-						return
+					self._printer.commands("M117 wait...")
+				else:
+					delta = 2 * threshold
+					while abs(delta) >= threshold and self.running:
+						self._printer.commands("G30 X%s Y%s" % corner)
+						try:
+							z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
+						except queue.Empty:
+							self.abort_now("Cannot get Z for corner %s" % str(corner))
+							return
+						if z_current is None:
+							self._logger.info("'None' from queue means user abort")
+							return
+						else:
+							delta = z_current - reference
 
-					if abs(z_current) >= threshold and multipass:
-						changed = True
-						self._printer.commands("M117 %s" % self.get_message(z_current))
-					else:
-						self._printer.commands("M117 %s" % self.get_message())
+						if abs(delta) >= threshold and multipass:
+							changed = True
+							self._printer.commands("M117 %s" % self.get_message(delta))
+						else:
+							self._printer.commands("M117 %s" % self.get_message())
 
-				if next_point_delay:
-					time.sleep(next_point_delay)
+					if next_point_delay:
+						time.sleep(next_point_delay)
 
 		self._printer.commands("M117 done")
 		self.running = False
