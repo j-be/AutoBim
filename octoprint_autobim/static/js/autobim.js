@@ -52,7 +52,7 @@ $(function () {
             });
         };
 
-        self.home = function (corner) {
+        self.home = function () {
             $.ajax({
                 url: API_BASEURL + "plugin/autobim",
                 type: "POST",
