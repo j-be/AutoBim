@@ -126,16 +126,11 @@ $(function () {
                     type: "success",
                 });
                 self.autoBimRunning(false);
-            } else if (data.type === "warn") {
+            } else if (data.message) {
                 new PNotify({
                     title: "AutoBim",
                     text: data.message,
-                });
-            } else if (data.type === "info") {
-                new PNotify({
-                    title: "AutoBim",
-                    text: data.message,
-                    type: "info",
+                    type: data.type,
                 });
             }
         }
