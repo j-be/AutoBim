@@ -1,6 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import
 
+import math
 import sys
 import time
 
@@ -41,6 +42,7 @@ class AutobimPlugin(
 		self.pattern = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
 		self.running = False
 		self.m503_running = False
+		self.g30_running = False
 
 	##~~ StartupPlugin mixin
 
@@ -116,9 +118,16 @@ class AutobimPlugin(
 			self._printer.home(["x", "y", "z"])
 			return jsonify({}), 200
 		elif command == "test_corner":
-			# TODO: Try to evaluate if it worked
 			self._logger.info("Got %s" % data)
-			self._printer.commands("G30 X%s Y%s" % (data['x'], data['y']))
+			self._send_G30((data['x'], data['y']))
+			if math.isnan(self._get_z_value()):
+				self._plugin_manager.send_plugin_message(
+					self._identifier,
+					dict(type="error", message="Point X%s Y%s seems to be unreachable!"))
+			else:
+				self._plugin_manager.send_plugin_message(
+					self._identifier,
+					dict(type="info", message="Point X%s Y%s seems to work fine"))
 			return jsonify({}), 200
 
 	##~~ SettingsPlugin mixin
@@ -146,7 +155,7 @@ class AutobimPlugin(
 		if not self.running and not self.m503_running:
 			return line
 
-		if self.running:
+		if self.g30_running:
 			self._process_z_value(line)
 		if self.m503_running:
 			self._process_m503(line)
@@ -166,6 +175,8 @@ class AutobimPlugin(
 		thread.start()
 
 	def _process_z_value(self, line):
+		if "ok" == line:
+			self.z_values.put(float("nan"))
 		try:
 			match = self.pattern.match(line)
 			if match:
@@ -231,15 +242,28 @@ class AutobimPlugin(
 			except queue.Empty:
 				self._m503_error_handler()
 
-	def autobim(self):
-		self.check_state()
-
-		# Flush queue
+	def _flush_z_values(self):
 		try:
 			while not self.z_values.empty():
 				self.z_values.get_nowait()
 		except queue.Empty:
 			pass
+
+	def _send_G30(self, point):
+		self._flush_z_values()
+		self.g30_running = True
+		self._printer.commands("G30 X%s Y%s" % point)
+
+	def _get_z_value(self):
+		try:
+			return self.z_values.get(timeout=QUEUE_TIMEOUT)
+		except queue.Empty:
+			return float('nan')
+		finally:
+			self.g30_running = False
+
+	def autobim(self):
+		self.check_state()
 
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="started"))
 
@@ -269,24 +293,29 @@ class AutobimPlugin(
 				if reference is None:
 					self._logger.info("Treating first corner as reference")
 					self._printer.commands("M117 Getting reference...")
-					self._printer.commands("G30 X%s Y%s" % corner)
-					try:
-						reference = self.z_values.get(timeout=QUEUE_TIMEOUT)
-					except queue.Empty:
-						self.abort_now("Cannot get Z for corner %s" % str(corner))
+
+					self._send_G30(corner)
+
+					reference = self._get_z_value()
+					if reference is None:
+						self._logger.info("'None' from queue means user abort")
 						return
+					elif math.isnan(reference):
+						self.abort_now("Cannot probe X%s Y%s! Please check settings!" % corner)
+						return
+
 					self._printer.commands("M117 wait...")
 				else:
 					delta = 2 * threshold
 					while abs(delta) >= threshold and self.running:
-						self._printer.commands("G30 X%s Y%s" % corner)
-						try:
-							z_current = self.z_values.get(timeout=QUEUE_TIMEOUT)
-						except queue.Empty:
-							self.abort_now("Cannot get Z for corner %s" % str(corner))
-							return
+						self._send_G30(corner)
+						z_current = self._get_z_value()
+
 						if z_current is None:
 							self._logger.info("'None' from queue means user abort")
+							return
+						elif math.isnan(z_current):
+							self.abort_now("Cannot probe X%s Y%s! Please check settings!" % corner)
 							return
 						else:
 							delta = z_current - reference
