@@ -64,7 +64,7 @@ class AutobimPlugin(
 		# for details.
 		return dict(
 			autobim=dict(
-				displayName="Autobim Plugin",
+				displayName="Autobim",
 				displayVersion=self._plugin_version,
 
 				# version check: github repository
