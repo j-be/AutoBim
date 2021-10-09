@@ -60,6 +60,12 @@
             printer probes it the point is fine. If the printer does nothing that means it cannot reach the point. You
             should try to change the coordinates until it does.
         </span></p>
+
+        <label class="control-label">Change number of corners</label>
+        <div class="controls">
+            <button class="btn btn-secondary" data-bind="click: addCorner">+</button>
+            <button class="btn btn-secondary" data-bind="click: removeCorner, enable: settings.settings.plugins.autobim.probe_points().length > 1">-</button>
+        </div>
     </div>
 
     <div class="control-group">

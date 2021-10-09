@@ -92,6 +92,14 @@ $(function () {
             });
         }
 
+        self.addCorner = function(_) {
+            self.settings.settings.plugins.autobim.probe_points.push({x: '0', y: '0'});
+        }
+
+        removeCorner = function(_) {
+            self.settings.settings.plugins.autobim.probe_points.pop();
+        }
+
         /* OctoPrint Hooks */
 
         self.onDataUpdaterPluginMessage = function(plugin, data) {
