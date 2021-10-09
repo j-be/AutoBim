@@ -10,13 +10,12 @@ if sys.version[0] == '2':
 else:
 	import queue
 import threading
-import re
 
 import octoprint.plugin
 from flask import jsonify
 from flask_login import current_user
 
-QUEUE_TIMEOUT = 180
+from octoprint_autobim.g30 import G30Handler
 
 
 class AutoBimError(Exception):
@@ -36,17 +35,15 @@ class AutobimPlugin(
 
 	def __init__(self):
 		super(AutobimPlugin, self).__init__()
-		self.z_values = queue.Queue(maxsize=1)
+		self.g30 = None
 		self.m503_done = queue.Queue(maxsize=1)
-		# TODO: Move pattern to settings
-		self.pattern = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
 		self.running = False
 		self.m503_running = False
-		self.g30_running = False
 
 	##~~ StartupPlugin mixin
 
 	def on_after_startup(self):
+		self.g30 = G30Handler(self._printer)
 		self._logger.info("AutoBim *ring-ring*")
 
 	##~~ AssetPlugin mixin
@@ -119,8 +116,8 @@ class AutobimPlugin(
 			return jsonify({}), 200
 		elif command == "test_corner":
 			self._logger.info("Got %s" % data)
-			self._send_G30((data['x'], data['y']))
-			if math.isnan(self._get_z_value()):
+			result = self.g30.do((data['x'], data['y']))
+			if math.isnan(result):
 				self._plugin_manager.send_plugin_message(
 					self._identifier,
 					dict(type="error", message="Point X%s Y%s seems to be unreachable!"))
@@ -152,13 +149,14 @@ class AutobimPlugin(
 	##~~ Gcode received hook
 
 	def process_gcode(self, _, line, *args, **kwargs):
-		if not self.running and not self.m503_running:
-			return line
+		try:
+			self.g30.handle(line)
 
-		if self.g30_running:
-			self._process_z_value(line)
-		if self.m503_running:
-			self._process_m503(line)
+			if self.m503_running:
+				self._process_m503(line)
+
+		except Exception as e:
+			self._logger.error("Error in process_gcode: %s" % str(e))
 
 		return line
 
@@ -173,17 +171,6 @@ class AutobimPlugin(
 			return
 		thread = threading.Thread(target=self.autobim)
 		thread.start()
-
-	def _process_z_value(self, line):
-		if "ok" == line:
-			self.z_values.put(float("nan"))
-		try:
-			match = self.pattern.match(line)
-			if match:
-				z_value = float(match.group(1))
-				self.z_values.put(z_value)
-		except Exception as e:
-			self._logger.error("Error in process_gcode: %s" % str(e))
 
 	def _process_m503(self, line):
 		if "Unknown command:" in line and "M503" in line:
@@ -242,26 +229,6 @@ class AutobimPlugin(
 			except queue.Empty:
 				self._m503_error_handler()
 
-	def _flush_z_values(self):
-		try:
-			while not self.z_values.empty():
-				self.z_values.get_nowait()
-		except queue.Empty:
-			pass
-
-	def _send_G30(self, point):
-		self._flush_z_values()
-		self.g30_running = True
-		self._printer.commands("G30 X%s Y%s" % point)
-
-	def _get_z_value(self):
-		try:
-			return self.z_values.get(timeout=QUEUE_TIMEOUT)
-		except queue.Empty:
-			return float('nan')
-		finally:
-			self.g30_running = False
-
 	def autobim(self):
 		self.check_state()
 
@@ -294,9 +261,7 @@ class AutobimPlugin(
 					self._logger.info("Treating first corner as reference")
 					self._printer.commands("M117 Getting reference...")
 
-					self._send_G30(corner)
-
-					reference = self._get_z_value()
+					reference = self.g30.do(corner)
 					if reference is None:
 						self._logger.info("'None' from queue means user abort")
 						return
@@ -308,8 +273,7 @@ class AutobimPlugin(
 				else:
 					delta = 2 * threshold
 					while abs(delta) >= threshold and self.running:
-						self._send_G30(corner)
-						z_current = self._get_z_value()
+						z_current = self.g30.do(corner)
 
 						if z_current is None:
 							self._logger.info("'None' from queue means user abort")
@@ -352,7 +316,7 @@ class AutobimPlugin(
 		self._logger.error(msg)
 		self._printer.commands("M117 %s" % msg)
 		self.running = False
-		self.z_values.put(None)
+		self.g30.abort()
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="aborted", message=msg))
 
 	def _clear_saved_mesh(self):
