@@ -2,20 +2,15 @@
 from __future__ import absolute_import
 
 import math
-import sys
-import time
-
-if sys.version[0] == '2':
-	import Queue as queue
-else:
-	import queue
 import threading
+import time
 
 import octoprint.plugin
 from flask import jsonify
 from flask_login import current_user
 
 from octoprint_autobim.g30 import G30Handler
+from octoprint_autobim.m503 import M503Handler
 
 
 class AutoBimError(Exception):
@@ -36,14 +31,14 @@ class AutobimPlugin(
 	def __init__(self):
 		super(AutobimPlugin, self).__init__()
 		self.g30 = None
-		self.m503_done = queue.Queue(maxsize=1)
+		self.m503 = None
 		self.running = False
-		self.m503_running = False
 
 	##~~ StartupPlugin mixin
 
 	def on_after_startup(self):
 		self.g30 = G30Handler(self._printer)
+		self.m503 = M503Handler(self._printer)
 		self._logger.info("AutoBim *ring-ring*")
 
 	##~~ AssetPlugin mixin
@@ -151,10 +146,7 @@ class AutobimPlugin(
 	def process_gcode(self, _, line, *args, **kwargs):
 		try:
 			self.g30.handle(line)
-
-			if self.m503_running:
-				self._process_m503(line)
-
+			self.m503.handle(line)
 		except Exception as e:
 			self._logger.error("Error in process_gcode: %s" % str(e))
 
@@ -172,49 +164,7 @@ class AutobimPlugin(
 		thread = threading.Thread(target=self.autobim)
 		thread.start()
 
-	def _process_m503(self, line):
-		if "Unknown command:" in line and "M503" in line:
-			self._m503_error_handler()
-			self.stop_m503()
-			return
-		if line.startswith("ok"):
-			self._plugin_manager.send_plugin_message(self._identifier, dict(
-				type="info",
-				message="Seems like no UBL system is active! If so, please change the setting."))
-			self._set_ubl_flag(False)
-			self.stop_m503()
-			return
-		if "Unified Bed Leveling System" in line:
-			self._plugin_manager.send_plugin_message(self._identifier, dict(
-				type="info",
-				message="Seems like UBL system is active! If not, please change the setting."))
-			self._set_ubl_flag(True)
-			self.stop_m503()
-			return
-
-	def _m503_error_handler(self):
-		self.m503_running = False
-		self._plugin_manager.send_plugin_message(self._identifier, dict(
-			type="warn",
-			message="Cannot determine whether UBL is active or not! Assuming it isn't. If it is, please set it manually in the settings."))
-		self._set_ubl_flag(False)
-		return
-
 	##~~ Plugin implementation
-
-	def start_m503(self):
-		# Flush queue
-		try:
-			while not self.m503_done.empty():
-				self.m503_done.get_nowait()
-		except queue.Empty:
-			pass
-		self.m503_running = True
-		self._printer.commands("M503")
-
-	def stop_m503(self):
-		self.m503_running = False
-		self.m503_done.put(None)
 
 	def check_state(self):
 		if not self._printer.is_operational():
@@ -223,11 +173,27 @@ class AutobimPlugin(
 			raise AutoBimError("Can't start AutoBim - printer is printing!")
 		if self._settings.get_boolean(["has_ubl"]) is None:
 			self._logger.info("Unknown whether UBL or not - checking")
-			self.start_m503()
-			try:
-				self.m503_done.get(timeout=5)
-			except queue.Empty:
-				self._m503_error_handler()
+			self._handle_m503_result(self.m503.do())
+
+	def _handle_m503_result(self, result):
+		if result is None:
+			self._logger.info("'None' from queue means user abort")
+			return
+		elif math.isnan(result):
+			self._plugin_manager.send_plugin_message(self._identifier, dict(
+				type="warn",
+				message="Cannot determine whether UBL is active or not! Assuming it isn't. If it is, please set it manually in the settings."))
+			self._set_ubl_flag(False)
+		elif result:
+			self._plugin_manager.send_plugin_message(self._identifier, dict(
+				type="info",
+				message="Seems like UBL system is active! If not, please change the setting."))
+			self._set_ubl_flag(True)
+		else:
+			self._plugin_manager.send_plugin_message(self._identifier, dict(
+				type="info",
+				message="Seems like no UBL system is active! If so, please change the setting."))
+			self._set_ubl_flag(False)
 
 	def autobim(self):
 		self.running = True
