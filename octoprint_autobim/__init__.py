@@ -140,15 +140,6 @@ class AutobimPlugin(
 			first_corner_is_reference=False,
 		)
 
-	def on_settings_save(self, data):
-		old_button_in_navbar = self._settings.get_boolean(["button_in_navbar"])
-
-		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
-
-		new_button_in_navbar = self._settings.get_boolean(["sub", "some_flag"])
-		if old_button_in_navbar != new_button_in_navbar:
-			pass
-
 	##~~ Gcode received hook
 
 	def process_gcode(self, _, line, *args, **kwargs):
@@ -161,6 +152,10 @@ class AutobimPlugin(
 			self._process_m503(line)
 
 		return line
+
+	def _set_ubl_flag(self, value):
+		self._settings.set_boolean(["has_ubl"], value)
+		self._settings.save(trigger_event=True)
 
 	##~~ AtCommand hook
 
@@ -206,10 +201,6 @@ class AutobimPlugin(
 			message="Cannot determine whether UBL is active or not! Assuming it isn't. If it is, please set it manually in the settings."))
 		self._set_ubl_flag(False)
 		return
-
-	def _set_ubl_flag(self, value):
-		self._settings.set_boolean(["has_ubl"], value)
-		self._settings.save(trigger_event=True)
 
 	##~~ Plugin implementation
 
