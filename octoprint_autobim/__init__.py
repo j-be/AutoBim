@@ -230,6 +230,8 @@ class AutobimPlugin(
 				self._m503_error_handler()
 
 	def autobim(self):
+		self.running = True
+
 		self.check_state()
 
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="started"))
@@ -242,7 +244,6 @@ class AutobimPlugin(
 		# Jettison saved mesh
 		self._clear_saved_mesh()
 
-		self.running = True
 		changed = True
 		threshold = self._settings.get_float(["threshold"])
 		multipass = self._settings.get_boolean(["multipass"])
@@ -317,6 +318,7 @@ class AutobimPlugin(
 		self._printer.commands("M117 %s" % msg)
 		self.running = False
 		self.g30.abort()
+		self.m503.abort()
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="aborted", message=msg))
 
 	def _clear_saved_mesh(self):

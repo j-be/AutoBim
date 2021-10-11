@@ -20,20 +20,23 @@ class G30Handler(object):
 		return self._get(timeout)
 
 	def abort(self):
-		self.z_values.put(None)
+		self._flush()
+		self.z_values.put(None, False)
 
 	def handle(self, line):
 		if not self.running:
 			return
 
 		if "ok" == line:
-			self.z_values.put(float("nan"))
+			self.z_values.put(float("nan"), False)
+			self.running = False
 			return
 
 		match = self.pattern.match(line)
 		if match:
 			z_value = float(match.group(1))
-			self.z_values.put(z_value)
+			self.z_values.put(z_value, False)
+			self.running = False
 
 	def _start(self, point):
 		self._flush()
