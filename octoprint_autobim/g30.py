@@ -1,17 +1,12 @@
 import re
-import sys
 
-if sys.version[0] == '2':
-	import Queue as queue
-else:
-	import queue
+from octoprint_autobim.async_command import AsyncCommand
 
 
-class G30Handler(object):
+class G30Handler(AsyncCommand):
 	def __init__(self, printer):
+		super(G30Handler, self).__init__()
 		self._printer = printer
-		self.z_values = queue.Queue(maxsize=1)
-		self.running = False
 		# TODO: Move pattern to settings
 		self.pattern = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
 
@@ -19,41 +14,15 @@ class G30Handler(object):
 		self._start(point)
 		return self._get(timeout)
 
-	def abort(self):
-		self._flush()
-		self.z_values.put(None, False)
+	def _start(self, point):
+		self._set_running()
+		self._printer.commands("G30 X%s Y%s" % point)
 
-	def handle(self, line):
-		if not self.running:
-			return
-
+	def _handle_internal(self, line):
 		if "ok" == line:
-			self.z_values.put(float("nan"), False)
-			self.running = False
+			self._register_result(float('nan'))
 			return
 
 		match = self.pattern.match(line)
 		if match:
-			z_value = float(match.group(1))
-			self.z_values.put(z_value, False)
-			self.running = False
-
-	def _start(self, point):
-		self._flush()
-		self.running = True
-		self._printer.commands("G30 X%s Y%s" % point)
-
-	def _get(self, timeout):
-		try:
-			return self.z_values.get(timeout=timeout)
-		except queue.Empty:
-			return float('nan')
-		finally:
-			self.running = False
-
-	def _flush(self):
-		try:
-			while not self.z_values.empty():
-				self.z_values.get_nowait()
-		except queue.Empty:
-			pass
+			self._register_result(float(match.group(1)))

@@ -32,6 +32,7 @@ class AutobimPlugin(
 		super(AutobimPlugin, self).__init__()
 		self.g30 = None
 		self.m503 = None
+		self.handlers = []
 		self.running = False
 
 	##~~ StartupPlugin mixin
@@ -39,6 +40,10 @@ class AutobimPlugin(
 	def on_after_startup(self):
 		self.g30 = G30Handler(self._printer)
 		self.m503 = M503Handler(self._printer)
+		self.handlers = [
+			self.g30,
+			self.m503,
+		]
 		self._logger.info("AutoBim *ring-ring*")
 
 	##~~ AssetPlugin mixin
@@ -145,8 +150,8 @@ class AutobimPlugin(
 
 	def process_gcode(self, _, line, *args, **kwargs):
 		try:
-			self.g30.handle(line)
-			self.m503.handle(line)
+			for handler in self.handlers:
+				handler.handle(line)
 		except Exception as e:
 			self._logger.error("Error in process_gcode: %s" % str(e))
 
@@ -283,8 +288,8 @@ class AutobimPlugin(
 		self._logger.error(msg)
 		self._printer.commands("M117 %s" % msg)
 		self.running = False
-		self.g30.abort()
-		self.m503.abort()
+		for handler in self.handlers:
+			handler.abort()
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="aborted", message=msg))
 
 	def _clear_saved_mesh(self):
