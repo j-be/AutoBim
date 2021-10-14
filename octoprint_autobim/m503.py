@@ -1,4 +1,4 @@
-from octoprint_autobim.async_command import AsyncCommand
+from octoprint_autobim.async_command import AsyncCommand, Result
 
 
 class M503Handler(AsyncCommand):
@@ -16,11 +16,11 @@ class M503Handler(AsyncCommand):
 
 	def _handle_internal(self, line):
 		if "Unknown command:" in line and "M503" in line:
-			self._register_result(float('nan'))
+			self._register_result(Result.error())
 			return
 		if line.startswith("ok"):
-			self._register_result(False)
+			self._register_result(Result.of(False))
 			return
 		if "Unified Bed Leveling System" in line:
-			self._register_result(True)
+			self._register_result(Result.of(True))
 			return

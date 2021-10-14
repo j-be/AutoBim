@@ -1,7 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import
 
-import math
 import threading
 import time
 
@@ -122,14 +121,14 @@ class AutobimPlugin(
 	def on_test_point(self, point):
 		self._logger.info("Got X%s, Y%s" % point)
 		result = self.g30.do(point, 30)
-		if math.isnan(result):
-			self._plugin_manager.send_plugin_message(
-				self._identifier,
-				dict(type="error", message="Point X%s Y%s seems to be unreachable!" % point))
-		else:
+		if result.has_value():
 			self._plugin_manager.send_plugin_message(
 				self._identifier,
 				dict(type="info", message="Point X%s Y%s seems to work fine" % point))
+		else:
+			self._plugin_manager.send_plugin_message(
+				self._identifier,
+				dict(type="error", message="Point X%s Y%s seems to be unreachable!" % point))
 
 	##~~ SettingsPlugin mixin
 
@@ -185,15 +184,15 @@ class AutobimPlugin(
 			self._handle_m503_result(self.m503.do())
 
 	def _handle_m503_result(self, result):
-		if result is None:
+		if result.abort:
 			self._logger.info("'None' from queue means user abort")
 			return
-		elif math.isnan(result):
+		elif not result.has_value:
 			self._plugin_manager.send_plugin_message(self._identifier, dict(
 				type="warn",
 				message="Cannot determine whether UBL is active or not! Assuming it isn't. If it is, please set it manually in the settings."))
 			self._set_ubl_flag(False)
-		elif result:
+		elif result.value is True:
 			self._plugin_manager.send_plugin_message(self._identifier, dict(
 				type="info",
 				message="Seems like UBL system is active! If not, please change the setting."))
@@ -237,28 +236,29 @@ class AutobimPlugin(
 					self._logger.info("Treating first corner as reference")
 					self._printer.commands("M117 Getting reference...")
 
-					reference = self.g30.do(corner)
-					if reference is None:
+					result = self.g30.do(corner)
+					if result.abort:
 						self._logger.info("'None' from queue means user abort")
 						return
-					elif math.isnan(reference):
+					elif not result.has_value():
 						self.abort_now("Cannot probe X%s Y%s! Please check settings!" % corner)
 						return
 
+					reference = result.value
 					self._printer.commands("M117 wait...")
 				else:
 					delta = 2 * threshold
 					while abs(delta) >= threshold and self.running:
 						z_current = self.g30.do(corner)
 
-						if z_current is None:
+						if z_current.abort:
 							self._logger.info("'None' from queue means user abort")
 							return
-						elif math.isnan(z_current):
+						elif not z_current.has_value():
 							self.abort_now("Cannot probe X%s Y%s! Please check settings!" % corner)
 							return
 						else:
-							delta = z_current - reference
+							delta = z_current.value - reference
 
 						if abs(delta) >= threshold and multipass:
 							changed = True

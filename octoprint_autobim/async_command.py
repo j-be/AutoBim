@@ -6,6 +6,32 @@ else:
 	import queue
 
 
+class Result(object):
+	def __init__(self, error, abort, value):
+		self.error = error
+		self.abort = abort
+		self.value = value
+
+	def has_value(self):
+		return not self.error and not self.abort and self.value is not None
+
+	@staticmethod
+	def error():
+		return Result(True, False, None)
+
+	@staticmethod
+	def abort():
+		return Result(False, True, None)
+
+	@staticmethod
+	def of(value):
+		return Result(False, False, value)
+
+	@staticmethod
+	def no_result():
+		return Result(False, False, None)
+
+
 class AsyncCommand(object):
 	def __init__(self):
 		self.__running = False
@@ -33,13 +59,13 @@ class AsyncCommand(object):
 	def abort(self):
 		self.__running = False
 		self._flush()
-		self.__result.put(None, False)
+		self.__result.put(Result.abort(), False)
 
 	def _get(self, timeout):
 		try:
 			return self.__result.get(timeout=timeout)
 		except queue.Empty:
-			return float('nan')
+			return Result.no_result()
 		finally:
 			self.__running = False
 

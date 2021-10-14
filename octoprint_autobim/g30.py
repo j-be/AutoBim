@@ -1,6 +1,6 @@
 import re
 
-from octoprint_autobim.async_command import AsyncCommand
+from octoprint_autobim.async_command import AsyncCommand, Result
 
 
 class G30Handler(AsyncCommand):
@@ -20,9 +20,10 @@ class G30Handler(AsyncCommand):
 
 	def _handle_internal(self, line):
 		if "ok" == line:
-			self._register_result(float('nan'))
+			self._register_result(Result.error())
 			return
 
 		match = self.pattern.match(line)
 		if match:
-			self._register_result(float(match.group(1)))
+			self._register_result(Result.of(float(match.group(1))))
+			return
