@@ -115,17 +115,21 @@ class AutobimPlugin(
 			self._printer.home(["x", "y", "z"])
 			return jsonify({}), 200
 		elif command == "test_corner":
-			self._logger.info("Got %s" % data)
-			result = self.g30.do((data['x'], data['y']))
-			if math.isnan(result):
-				self._plugin_manager.send_plugin_message(
-					self._identifier,
-					dict(type="error", message="Point X%s Y%s seems to be unreachable!"))
-			else:
-				self._plugin_manager.send_plugin_message(
-					self._identifier,
-					dict(type="info", message="Point X%s Y%s seems to work fine"))
+			thread = threading.Thread(target=self.on_test_point, args=((data['x'], data['y']),))
+			thread.start()
 			return jsonify({}), 200
+
+	def on_test_point(self, point):
+		self._logger.info("Got X%s, Y%s" % point)
+		result = self.g30.do(point, 30)
+		if math.isnan(result):
+			self._plugin_manager.send_plugin_message(
+				self._identifier,
+				dict(type="error", message="Point X%s Y%s seems to be unreachable!" % point))
+		else:
+			self._plugin_manager.send_plugin_message(
+				self._identifier,
+				dict(type="info", message="Point X%s Y%s seems to work fine" % point))
 
 	##~~ SettingsPlugin mixin
 
