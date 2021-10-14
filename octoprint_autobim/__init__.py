@@ -30,6 +30,7 @@ class AutobimPlugin(
 	def __init__(self):
 		super(AutobimPlugin, self).__init__()
 		self.g30 = None
+		self.g30_tester = None
 		self.m503 = None
 		self.handlers = []
 		self.running = False
@@ -38,11 +39,15 @@ class AutobimPlugin(
 
 	def on_after_startup(self):
 		self.g30 = G30Handler(self._printer)
+		self.g30_tester = G30Handler(self._printer, False)
 		self.m503 = M503Handler(self._printer)
+
 		self.handlers = [
 			self.g30,
+			self.g30_tester,
 			self.m503,
 		]
+
 		self._logger.info("AutoBim *ring-ring*")
 
 	##~~ AssetPlugin mixin
@@ -120,7 +125,7 @@ class AutobimPlugin(
 
 	def on_test_point(self, point):
 		self._logger.info("Got X%s, Y%s" % point)
-		result = self.g30.do(point, 30)
+		result = self.g30_tester.do(point, 30)
 		if result.has_value():
 			self._plugin_manager.send_plugin_message(
 				self._identifier,

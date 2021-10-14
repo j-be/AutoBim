@@ -4,9 +4,10 @@ from octoprint_autobim.async_command import AsyncCommand, Result
 
 
 class G30Handler(AsyncCommand):
-	def __init__(self, printer):
+	def __init__(self, printer, ignore_ok=True):
 		super(G30Handler, self).__init__()
 		self._printer = printer
+		self._ok_is_error = not ignore_ok
 		# TODO: Move pattern to settings
 		self.pattern = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
 
@@ -19,7 +20,7 @@ class G30Handler(AsyncCommand):
 		self._printer.commands("G30 X%s Y%s" % point)
 
 	def _handle_internal(self, line):
-		if "ok" == line:
+		if self._ok_is_error and "ok" == line.strip():
 			self._register_result(Result.error())
 			return
 
