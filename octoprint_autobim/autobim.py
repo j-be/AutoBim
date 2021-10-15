@@ -101,6 +101,7 @@ class AutobimPlugin(
 			status=[],
 			home=[],
 			test_corner=[],
+			test_all_corners=[],
 		)
 
 	def on_api_command(self, command, data):
@@ -123,6 +124,8 @@ class AutobimPlugin(
 			thread = threading.Thread(target=self.on_test_point, args=((data['x'], data['y']),))
 			thread.start()
 			return jsonify({}), 200
+		elif command == "test_all_corners":
+			return jsonify(self.on_test_points(data['points'])), 200
 
 	def on_test_point(self, point):
 		self._logger.info("Got X%s, Y%s" % point)
@@ -135,6 +138,19 @@ class AutobimPlugin(
 			self._plugin_manager.send_plugin_message(
 				self._identifier,
 				dict(type="error", message="Point X%s Y%s seems to be unreachable!" % point))
+		return result.has_value()
+
+	def on_test_points(self, point_list):
+		self._printer.home(['x', 'y', 'z'])
+
+		results = []
+		self._logger.info("PointList: %s" % str(point_list))
+		for point in point_list:
+			results.append({
+				'point': point,
+				'result': self.on_test_point((point['x'], point['y'])),
+			})
+		return {'results': results}
 
 	##~~ SettingsPlugin mixin
 

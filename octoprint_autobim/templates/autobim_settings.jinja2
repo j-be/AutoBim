@@ -45,13 +45,21 @@
             Don't forget to <button class="btn btn-primary" data-bind="click: home">Home</button> your printer before
             using the "Test" buttons below.
         </p>
-        <div class="controls" data-bind="foreach: settings.settings.plugins.autobim.probe_points">
+        <div class="controls">
             <div class="row" style="margin-bottom: 14px">
-                <div class="span6">
-                    <span>X&nbsp;</span><input style="max-width: 60px" type="number" data-bind="value: x">
-                    <span>Y&nbsp;</span><input style="max-width: 60px" type="number" data-bind="value: y">
+                <div class="offset6 span4">
+                    <button class="btn btn-primary" data-bind="click: testAllCorners">Test all points</button>
                 </div>
-                <div class="span4"><button class="btn btn-secondary" data-bind="click: $parent.testCorner">Test</button></div>
+            </div>
+            <div data-bind="foreach: settings.settings.plugins.autobim.probe_points">
+                <div class="row" style="margin-bottom: 14px">
+                    <div class="span6">
+                        <span>X&nbsp;</span><input style="max-width: 60px" type="number" data-bind="value: x">
+                        <span>Y&nbsp;</span><input style="max-width: 60px" type="number" data-bind="value: y">
+                        <span data-bind="text: $parent.probes.result({x: x(), y: y()})"></span>
+                    </div>
+                    <div class="span4"><button class="btn btn-secondary" data-bind="click: $parent.testCorner">Test</button></div>
+                </div>
             </div>
         </div>
         <p><span class="help-block">

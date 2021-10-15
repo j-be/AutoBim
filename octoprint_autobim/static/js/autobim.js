@@ -10,6 +10,17 @@ $(function () {
         self.connection = parameters[0];
         self.settings = parameters[1];
         self.autoBimRunning = ko.observable(false);
+        self.probeResults = ko.observableArray();
+        self.probes = ko.observable(0);
+        self.probes.result = function (point) {
+            return ko.pureComputed(function() {
+                let found = self.probeResults().find(result => result.point.x == point.x && result.point.y == point.y);
+                if (found) {
+                    return found.result ? 'Ok' : 'Not ok';
+                }
+                return '';
+            }, this)
+        }.bind(self.probes);
 
         console.log("AutoBim *ring-ring*");
 
@@ -88,6 +99,34 @@ $(function () {
                         text: data.responseText,
                         type: "error"
                     });
+                }
+            });
+        }
+
+        self.testAllCorners = function () {
+            console.log(self.settings.settings.plugins.autobim.probe_points())
+            $.ajax({
+                url: API_BASEURL + "plugin/autobim",
+                type: "POST",
+                dataType: "json",
+                data: JSON.stringify({
+                    command: "test_all_corners",
+                    points: self.settings.settings.plugins.autobim.probe_points()
+                                .map(observable => ({
+                                    x: observable.x(),
+                                    y: observable.y(),
+                                })),
+                }),
+                contentType: "application/json; charset=UTF-8",
+                error: function (data, _) {
+                    new PNotify({
+                        title: "Testing failed.",
+                        text: data.responseText,
+                        type: "error"
+                    });
+                },
+                success: function (data, _) {
+                    self.probeResults(data.results);
                 }
             });
         }
