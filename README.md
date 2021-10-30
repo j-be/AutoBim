@@ -43,6 +43,15 @@ I think that depends on the method, and even more on how good you are at your me
     * Send `G30 X30 Y30` over OctoPrints Terminal. Make sure to home the printer before you do.
   * [`M117` - Set LCD Message](https://marlinfw.org/docs/gcode/M117.html)
     * Send `M117 Hello World` over OctoPrints Terminal and look for `Hello World` on the printer's screen
+* Klipper firmware with:
+  * A macro to support the `G30` command
+    * This should move to the supplied `X` and `Y` positions then `PROBE`
+    * Test as per Marlin
+  * A macro to support the `G29 D` / `G29 J` commands
+    * This should execute `BED_MESH_CLEAR`
+    * Test by sending both commands over the OctoPrint terminal.
+  * Ability to display a message with the `M117` command
+    * Test as per Marlin
 
 ## Setup
 
@@ -77,6 +86,9 @@ comfortable doing it:
 
 If it probed the point your printer is correctly set up. If not, check out
 [M851 in Marlin documentation](https://marlinfw.org/docs/gcode/M851.html) for further information on the topic.
+
+If you are using Klipper this is setup and configured as part of
+[Probe Calibration](https://www.klipper3d.org/Probe_Calibrate.html) in the Klipper documentation.
 
 ## Configuration
 
