@@ -92,6 +92,8 @@ Defaults are for an Ender 3 sized printer and a BLTouch. You can configure:
   * Default: `False`
 * Delay between corners - Wait the given amount of seconds before moving to next corner
   * Default: `0.0`
+* G30 command (probe) result pattern flavour
+  * Default: `marlin`
 * Points to probe
   * Default: `(30, 30), (200, 30), (200, 200), (30, 200)` (Ender 3)
   * Note: These coordinates refer to *probe* position, while most other coordinates (e.g. what is displayed on screen)

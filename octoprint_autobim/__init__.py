@@ -38,8 +38,8 @@ class AutobimPlugin(
 	##~~ StartupPlugin mixin
 
 	def on_after_startup(self):
-		self.g30 = G30Handler(self._printer)
-		self.g30_tester = G30Handler(self._printer, False)
+		self.g30 = G30Handler(self._printer, self._settings)
+		self.g30_tester = G30Handler(self._printer, self._settings, False)
 		self.m503 = M503Handler(self._printer)
 
 		self.handlers = [
@@ -152,6 +152,7 @@ class AutobimPlugin(
 			has_ubl=None,
 			next_point_delay=0.0,
 			first_corner_is_reference=False,
+			g30_regex="marlin"
 		)
 
 	##~~ Gcode received hook
