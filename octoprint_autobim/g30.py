@@ -3,18 +3,38 @@ import re
 from octoprint_autobim.async_command import AsyncCommand, Result
 
 
+MARLIN_PATTERN = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
+KLIPPER_PATTERN = re.compile(r"^// Result is z=(-?\d+\.\d+)$")
+
+
 class G30Handler(AsyncCommand):
 	def __init__(self, printer, settings, ignore_ok=True):
 		super(G30Handler, self).__init__()
 		self._printer = printer
 		self._settings = settings
 		self._ok_is_error = not ignore_ok
+		self.firmware_type = None
+		self.custom_pattern = None
 		self.pattern = None
 
 	def update_pattern(self):
-		g30_regex = self._settings.get(["g30_regex"])
-		self.pattern = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$") if g30_regex == "marlin" \
-			else re.compile(r"^// Result is z=(-?\d+\.\d+)$")
+		new_custom_pattern = self._settings.get(["g30_regex"])
+		if new_custom_pattern != self.custom_pattern and new_custom_pattern.strip() != "":
+			self.pattern = re.compile(new_custom_pattern)
+			self.custom_pattern = new_custom_pattern
+			return
+
+		new_firmware_type = self._settings.get(["firmware_type"])
+		if new_firmware_type != self.firmware_type:
+			if new_firmware_type == "klipper":
+				self.pattern = KLIPPER_PATTERN
+			elif new_firmware_type == "marlin":
+				self.pattern = MARLIN_PATTERN
+			else:
+				# We try the Marlin pattern by default if the name isn't one we know
+				self.pattern = KLIPPER_PATTERN if self._printer.firmware_info['name'] == "klipper" else MARLIN_PATTERN
+
+			self.firmware_type = new_firmware_type
 
 	def do(self, point, timeout=180):
 		self.update_pattern()

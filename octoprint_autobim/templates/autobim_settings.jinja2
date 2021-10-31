@@ -9,6 +9,19 @@
 <form class="form-horizontal">
     <div class="control-group">
         <legend>Main settings</legend>
+        <label class="control-label">Firmware type</label>
+        <div class="controls">
+            <select data-bind="value: settings.settings.plugins.autobim.firmware_type">
+                <option value="auto">Auto</option>
+                <option value="marlin">Marlin</option>
+                <option value="klipper">Klipper</option>
+            </select>
+            <span class="help-block">
+                The type of firmware in use. Auto will use the detected value from OctoPrint.<br/>
+                This changes the output we expect from the G30 (probe) command.<br/>
+                If you are not using a supported firmware, you may specify your own pattern under "G30 command (probe) custom pattern".
+            </span>
+        </div>
         <label class="control-label">Invert arrows on display</label>
         <div class="controls">
             <input type="checkbox" class="input-block-level" data-bind="checked: settings.settings.plugins.autobim.invert" />
@@ -30,14 +43,13 @@
             <input type="number" step="0.1" class="span3 input-block-level" data-bind="value: settings.settings.plugins.autobim.next_point_delay" />
             <span class="help-block">After the current corner measured within threshold, wait the given amount of seconds before moving to next corner</span>
         </div>
-        <label class="control-label">G30 command (probe) result pattern flavour</label>
+        <label class="control-label">G30 command (probe) custom pattern</label>
         <div class="controls">
-            <select data-bind="value: settings.settings.plugins.autobim.g30_regex">
-                <option value="marlin">Marlin</option>
-                <option value="klipper">Klipper</option>
-            </select>
-            <span class="help-block">This determines how we interpret the output from the G30 probe command.<br/>
-            Ensure you save this option before testing probe points.</span>
+            <input type="text" placeholder="Use Default" data-bind="value: settings.settings.plugins.autobim.g30_regex" />
+            <span class="help-block">
+                If the Marlin or Klipper default patterns do not work for you, a custom pattern can be specified here. Blank = use default pattern.<br/>
+                This should match the line output from the G30 command which outputs the Z coordinate. The first matcher group should be the Z value (the number only).
+            </span>
         </div>
     </div>
 
@@ -52,7 +64,8 @@
         </div>
         <p>
             Don't forget to <button class="btn btn-primary" data-bind="click: home">Home</button> your printer before
-            using the "Test" buttons below.
+            using the "Test" buttons below.<br/>
+            If you have changed any settings which effect probing, such as firmware type, save the settings before testing.
         </p>
         <div class="controls" data-bind="foreach: settings.settings.plugins.autobim.probe_points">
             <div class="row" style="margin-bottom: 14px">
