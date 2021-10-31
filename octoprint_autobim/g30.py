@@ -8,33 +8,47 @@ KLIPPER_PATTERN = re.compile(r"^// Result is z=(-?\d+\.\d+)$")
 
 
 class G30Handler(AsyncCommand):
-	def __init__(self, printer, settings, ignore_ok=True):
+	def __init__(self, printer, settings, logger, ignore_ok=True):
 		super(G30Handler, self).__init__()
+		self._logger = logger
 		self._printer = printer
 		self._settings = settings
 		self._ok_is_error = not ignore_ok
 		self.firmware_type = None
-		self.custom_pattern = None
+		self.custom_pattern = ""
 		self.pattern = None
 
 	def update_pattern(self):
 		new_custom_pattern = self._settings.get(["g30_regex"])
+		self._logger.debug(f"new_custom_pattern: {new_custom_pattern}")
 		if new_custom_pattern != self.custom_pattern and new_custom_pattern.strip() != "":
+			# using a custom pattern
 			self.pattern = re.compile(new_custom_pattern)
 			self.custom_pattern = new_custom_pattern
-			return
+			self._logger.info(f"Updated custom pattern.")
 
-		new_firmware_type = self._settings.get(["firmware_type"])
-		if new_firmware_type != self.firmware_type:
-			if new_firmware_type == "klipper":
-				self.pattern = KLIPPER_PATTERN
-			elif new_firmware_type == "marlin":
-				self.pattern = MARLIN_PATTERN
-			else:
-				# We try the Marlin pattern by default if the name isn't one we know
-				self.pattern = KLIPPER_PATTERN if self._printer.firmware_info['name'] == "klipper" else MARLIN_PATTERN
+		if self.custom_pattern == "":
+			# not using a custom pattern
+			new_firmware_type = self._settings.get(["firmware_type"])
+			self._logger.debug(f"new_firmware_type: {new_firmware_type}")
+			if new_firmware_type != self.firmware_type:
+				if new_firmware_type == "klipper":
+					self.pattern = KLIPPER_PATTERN
+					self._logger.info("Updated G30 pattern to Klipper.")
+				elif new_firmware_type == "marlin":
+					self.pattern = MARLIN_PATTERN
+					self._logger.info("Updated G30 pattern to Marlin.")
+				else:
+					# We try the Marlin pattern by default if the name isn't one we know
+					firmware_name = self._printer.firmware_info['name']
+					if firmware_name == "Klipper":
+						self.pattern = KLIPPER_PATTERN
+						self._logger.info(f"Updated G30 pattern to Klipper as firmware name is {firmware_name}")
+					else:
+						self.pattern = MARLIN_PATTERN
+						self._logger.info(f"Updated G30 pattern to Marlin as firmware name is {firmware_name}")
 
-			self.firmware_type = new_firmware_type
+				self.firmware_type = new_firmware_type
 
 	def do(self, point, timeout=180):
 		self.update_pattern()

@@ -38,8 +38,8 @@ class AutobimPlugin(
 	##~~ StartupPlugin mixin
 
 	def on_after_startup(self):
-		self.g30 = G30Handler(self._printer, self._settings)
-		self.g30_tester = G30Handler(self._printer, self._settings, False)
+		self.g30 = G30Handler(self._printer, self._settings, self._logger)
+		self.g30_tester = G30Handler(self._printer, self._settings, self._logger, False)
 		self.m503 = M503Handler(self._printer)
 
 		self.handlers = [
