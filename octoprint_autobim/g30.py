@@ -21,11 +21,13 @@ class G30Handler(AsyncCommand):
 	def update_pattern(self):
 		new_custom_pattern = self._settings.get(["g30_regex"])
 		self._logger.debug(f"new_custom_pattern: {new_custom_pattern}")
-		if new_custom_pattern != self.custom_pattern and new_custom_pattern.strip() != "":
-			# using a custom pattern
-			self.pattern = re.compile(new_custom_pattern)
+		if new_custom_pattern != self.custom_pattern:
+			if new_custom_pattern.strip() != "":
+				# using a custom pattern
+				self.pattern = re.compile(new_custom_pattern)
+				self._logger.info(f"Updated custom pattern.")
+
 			self.custom_pattern = new_custom_pattern
-			self._logger.info(f"Updated custom pattern.")
 
 		if self.custom_pattern == "":
 			# not using a custom pattern
