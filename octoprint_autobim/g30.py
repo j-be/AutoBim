@@ -14,59 +14,28 @@ class G30Handler(AsyncCommand):
 		self._printer = printer
 		self._settings = settings
 		self._ok_is_error = not ignore_ok
-		self.firmware_type = None
-		self.custom_pattern = ""
 		self.pattern = None
 
-	def apply_custom_pattern(self, pattern):
-		self.pattern = re.compile(pattern)
-
-		self.custom_pattern = pattern
-		self.firmware_type = None
-
-		self._logger.info(f"Updated custom pattern.")
-
-	def apply_firmware_pattern(self, new_firmware_type):
-		if new_firmware_type == "klipper":
-			self.pattern = KLIPPER_PATTERN
-			self._logger.info("Updated G30 pattern to Klipper.")
-
-		elif new_firmware_type == "marlin":
-			self.pattern = MARLIN_PATTERN
-			self._logger.info("Updated G30 pattern to Marlin.")
-
+	def _update_pattern_if_changed(self):
+		custom_pattern = self._settings.get(["g30_regex"])
+		if custom_pattern:
+			if not self.pattern or self.pattern.pattern != custom_pattern:
+				self.pattern = re.compile(custom_pattern)
 		else:
-			# We try the Marlin pattern by default if the name isn't one we know
 			firmware_name = self._printer.firmware_info['name']
-			if firmware_name == "Klipper":
+			if "klipper" in firmware_name.lower():
 				self.pattern = KLIPPER_PATTERN
 				self._logger.info("Updated G30 pattern to Klipper as the firmware name is %s", firmware_name)
 			else:
 				self.pattern = MARLIN_PATTERN
 				self._logger.info("Updated G30 pattern to Marlin as the firmware name is %s", firmware_name)
 
-		self.firmware_type = new_firmware_type
-		self.custom_pattern = ""
-
-	def update_pattern_if_changed(self):
-		new_firmware_type = self._settings.get(["firmware_type"])
-		new_custom_pattern = self._settings.get(["g30_regex"])
-
-		self._logger.debug("G30 settings: firmware_type = %s, g30_regex = \"%s\"", new_firmware_type, new_custom_pattern)
-
-		if new_custom_pattern != "" and new_custom_pattern != self.custom_pattern:
-			# use custom pattern as it takes precedence
-			self.apply_custom_pattern(new_custom_pattern)
-		elif new_firmware_type != self.firmware_type:
-			# configure pattern based on firmware / firmware choice
-			self.apply_firmware_pattern(new_firmware_type)
-
 	def do(self, point, timeout=180):
-		self.update_pattern_if_changed()
 		self._start(point)
 		return self._get(timeout)
 
 	def _start(self, point):
+		self._update_pattern_if_changed()
 		self._set_running()
 		self._printer.commands("G30 X%s Y%s" % point)
 

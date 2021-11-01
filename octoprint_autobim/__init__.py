@@ -152,7 +152,6 @@ class AutobimPlugin(
 			has_ubl=None,
 			next_point_delay=0.0,
 			first_corner_is_reference=False,
-			firmware_type="auto",
 			g30_regex="",
 		)
 
