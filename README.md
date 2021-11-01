@@ -44,12 +44,10 @@ I think that depends on the method, and even more on how good you are at your me
   * [`M117` - Set LCD Message](https://marlinfw.org/docs/gcode/M117.html)
     * Send `M117 Hello World` over OctoPrints Terminal and look for `Hello World` on the printer's screen
 * Klipper firmware with:
-  * A macro to support the `G30` command
-    * This should move to the supplied `X` and `Y` positions then `PROBE`
-    * Test as per Marlin
-  * A macro to support the `G29 D` / `G29 J` commands
-    * This should execute `BED_MESH_CLEAR`
-    * Test by sending both commands over the OctoPrint terminal.
+  * Macros to support:
+    * `G30` command (probe a location)
+    * `G29 D` / `G29 J` commands (clear bed mesh)
+    * Examples are provided in [Klipper Macro Examples](#klipper-macro-examples)
   * Ability to display a message with the `M117` command
     * Test as per Marlin
 
@@ -94,6 +92,8 @@ If you are using Klipper this is setup and configured as part of
 
 Defaults are for an Ender 3 sized printer and a BLTouch. You can configure:
 
+* Firmware type (Auto/Marlin/Klipper) - you shouldn't need to change from Auto
+  * Default: `Auto`
 * Invert arrows on display, e.g. for inverse screw threads on the adjustment screws
   * Default: `Off`
 * Enable/Disable multi-pass (i.e. go on until a full round measures ok)
@@ -104,8 +104,8 @@ Defaults are for an Ender 3 sized printer and a BLTouch. You can configure:
   * Default: `False`
 * Delay between corners - Wait the given amount of seconds before moving to next corner
   * Default: `0.0`
-* G30 command (probe) result pattern flavour
-  * Default: `marlin`
+* G30 command (probe) custom pattern
+  * Default: Blank (use default for supported firmware)
 * Points to probe
   * Default: `(30, 30), (200, 30), (200, 200), (30, 200)` (Ender 3)
   * Note: These coordinates refer to *probe* position, while most other coordinates (e.g. what is displayed on screen)
@@ -118,6 +118,60 @@ Planned are (ordered by assumed priority):
 
 * Allow for a different amount of probe points
 * Pattern for `G30` response parsing
+
+### Klipper Macro Examples
+
+A set of macros to add support for G29 and G30 are required for this plugin to work with Klipper. Examples are provided
+here that you can use to add the minimum functionality required.
+
+`G29.cfg`
+
+```
+[gcode_macro G29]
+gcode:
+  {% if 'D' in params or 'J' in params %}
+    BED_MESH_CLEAR
+  {% else %}
+    { action_respond_info("Functionality not implemented. D and J commands to clear bed mesh are supported.") }
+  {% endif %}
+```
+
+This macro runs the command to clear the bed mesh if either `G29 D` or `G29 J` are run. It doesn't provide any of the
+other `G29` functionality from Marlin, we just need the bed mesh clear functionality for this plugin.
+
+`G30.cfg`
+
+```
+[gcode_macro G30]
+gcode:
+  {% set x = params.X | default(0) | float %}
+  {% set y = params.Y | default(0) | float %}
+
+  {% if printer.toolhead.homed_axes != "xyz" %}
+    { action_respond_info("XYZ must be homed first.") }
+  {% else %}
+    SAVE_GCODE_STATE NAME=G30_state
+    G90
+    {% set old_z = printer.toolhead.position.z %}
+    {% if 'X' in params and 'Y' in params %}
+      G1 X{x} Y{y} F4000
+    {% endif %}
+    PROBE
+    {% if old_z is defined %}
+      G1 Z{old_z}
+    {% endif %}
+    RESTORE_GCODE_STATE NAME=G30_state MOVE=0
+  {% endif %}
+```
+
+This macro will:
+
+- If provided, move to the new X and Y locations
+- Probe the location
+- Move back to the original Z location before the probe
+
+It is important that your macro ensures the toolhead is a safe distance away from the bed again after probing, as
+X/Y travelling will occur after probing.
 
 ## What is supposed to happen
 
