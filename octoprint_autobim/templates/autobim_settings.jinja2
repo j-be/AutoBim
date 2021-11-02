@@ -76,4 +76,23 @@
             <span class="help-block">Needs OctoPrint restart to take effect.</span>
         </div>
     </div>
+
+    <div class="control-group">
+        <legend>Danger Zone - only touch if you know what you are doing!</legend>
+        <div class="row">
+            <label class="control-label">Custom G30 response pattern</label>
+            <div class="controls">
+                <input type="text" placeholder="Use Default" data-bind="value: settings.settings.plugins.autobim.g30_regex" />
+            </div>
+        </div>
+        <p class="help-block">
+            If the default patterns for parsing the Probe results do not work for you, a custom pattern can be
+            specified here. Blank = use default pattern. This should be a Regex which matches the Z value of the
+            output as its first group (the number only). The default patterns are:
+        </p>
+        <ul>
+            <li>Klipper: <pre>^// Result is z=(-?\d+\.\d+)$</pre></li>
+            <li>All other (incl. Marlin)<pre>^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$</pre></li>
+        </ul>
+    </div>
 </form>
