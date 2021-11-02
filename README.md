@@ -300,6 +300,10 @@ Vienna are called "Bim" (like "bin" as in "trash bin", just with an `m` instead 
 
 ## Credits
 
+Special thanks go to the following people:
+
+* [scottg88](https://github.com/scottg88) for basic Klipper support
+
 Credit goes to the following projects for being there and letting me look at and copy their code:
 
 * https://github.com/jneilliii/OctoPrint-BedLevelVisualizer
