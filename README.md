@@ -92,8 +92,6 @@ If you are using Klipper this is setup and configured as part of
 
 Defaults are for an Ender 3 sized printer and a BLTouch. You can configure:
 
-* Firmware type (Auto/Marlin/Klipper) - you shouldn't need to change from Auto
-  * Default: `Auto`
 * Invert arrows on display, e.g. for inverse screw threads on the adjustment screws
   * Default: `Off`
 * Enable/Disable multi-pass (i.e. go on until a full round measures ok)
@@ -104,8 +102,6 @@ Defaults are for an Ender 3 sized printer and a BLTouch. You can configure:
   * Default: `False`
 * Delay between corners - Wait the given amount of seconds before moving to next corner
   * Default: `0.0`
-* G30 command (probe) custom pattern
-  * Default: Blank (use default for supported firmware)
 * Points to probe
   * Default: `(30, 30), (200, 30), (200, 200), (30, 200)` (Ender 3)
   * Note: These coordinates refer to *probe* position, while most other coordinates (e.g. what is displayed on screen)
@@ -113,11 +109,12 @@ Defaults are for an Ender 3 sized printer and a BLTouch. You can configure:
     on the first corner, display says `ok. moving to next` but nothing happens** below) or get as close as possible.
 * Show button in Navbar
   * Default: `True`
+* G30 command (probe) custom pattern
+  * Default: Blank (use default for supported firmware)
 
 Planned are (ordered by assumed priority):
 
 * Allow for a different amount of probe points
-* Pattern for `G30` response parsing
 
 ### Klipper Macro Examples
 
