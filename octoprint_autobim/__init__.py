@@ -266,8 +266,9 @@ class AutobimPlugin(
 						else:
 							delta = z_current.value - reference
 
-						if abs(delta) >= threshold and multipass:
-							changed = True
+						if abs(delta) >= threshold:
+							if multipass:
+								changed = True
 							self._printer.commands("M117 %s" % self.get_message(delta))
 						else:
 							self._printer.commands("M117 %s" % self.get_message())
