@@ -161,6 +161,9 @@ gcode:
   {% endif %}
 ```
 
+**Please note** that this macro does NOT take into account the probe offset (see [issue #25](https://github.com/j-be/AutoBim/issues/25)).
+If you have an alternative version which does, feel free to open a PR, so that everybody can benefit.
+
 This macro will:
 
 - If provided, move to the new X and Y locations
