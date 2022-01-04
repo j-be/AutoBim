@@ -144,17 +144,17 @@ gcode:
   {% set x = params.X | default(0) | float %}
   {% set y = params.Y | default(0) | float %}
 
- {% if printer.configfile.settings.bltouch.x_offset is defined %}
-    {% set x_offset = printer.configfile.settings.bltouch.x_offset | default(0) | float %}
-    {% set y_offset = printer.configfile.settings.bltouch.y_offset | default(0) | float %}
- {% else %}
+  {% if printer.configfile.config.bltouch.x_offset is defined and printer.configfile.config.bltouch.y_offset is defined %}
     {% set x_offset = printer.configfile.config.bltouch.x_offset | default(0) | float %}
     {% set y_offset = printer.configfile.config.bltouch.y_offset | default(0) | float %}
- {% endif %}
-
-  {% set y = y - y_offset | float %}
-  {% set x = x - x_offset | float %}
-
+  {% elif printer.configfile.config.probe.x_offset is defined and printer.configfile.config.probe.y_offset is defined %}
+    {% set x_offset = printer.configfile.config.probe.x_offset | default(0) | float %}
+    {% set y_offset = printer.configfile.config.probe.y_offset | default(0) | float %}
+  {% endif %}
+    
+    {% set y = y - y_offset | float %}
+    {% set x = x - x_offset | float %}
+    
   {% if printer.toolhead.homed_axes != "xyz" %}
     { action_respond_info("XYZ must be homed first.") }
   {% else %}
