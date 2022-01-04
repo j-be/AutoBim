@@ -144,6 +144,17 @@ gcode:
   {% set x = params.X | default(0) | float %}
   {% set y = params.Y | default(0) | float %}
 
+ {% if printer.configfile.settings.bltouch.x_offset is defined %}
+    {% set x_offset = printer.configfile.settings.bltouch.x_offset | default(0) | float %}
+    {% set y_offset = printer.configfile.settings.bltouch.y_offset | default(0) | float %}
+ {% else %}
+    {% set x_offset = printer.configfile.config.bltouch.x_offset | default(0) | float %}
+    {% set y_offset = printer.configfile.config.bltouch.y_offset | default(0) | float %}
+ {% endif %}
+
+  {% set y = y - y_offset | float %}
+  {% set x = x - x_offset | float %}
+
   {% if printer.toolhead.homed_axes != "xyz" %}
     { action_respond_info("XYZ must be homed first.") }
   {% else %}
@@ -161,8 +172,7 @@ gcode:
   {% endif %}
 ```
 
-**Please note** that this macro does NOT take into account the probe offset (see [issue #25](https://github.com/j-be/AutoBim/issues/25)).
-If you have an alternative version which does, feel free to open a PR, so that everybody can benefit.
+**Please note** that this macro DOES take into account the probe offset. Probe points may still require adjusting if the offset position exceeds max travel.  
 
 This macro will:
 
