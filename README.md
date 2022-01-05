@@ -320,6 +320,7 @@ Vienna are called "Bim" (like "bin" as in "trash bin", just with an `m` instead 
 Special thanks go to the following people:
 
 * [scottg88](https://github.com/scottg88) for basic Klipper support
+* [datapaganism](https://github.com/datapaganism) for adding probe offset support to Klipper macros
 
 Credit goes to the following projects for being there and letting me look at and copy their code:
 
