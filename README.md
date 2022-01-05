@@ -123,7 +123,7 @@ here that you can use to add the minimum functionality required.
 
 `G29.cfg`
 
-```
+```jinja
 [gcode_macro G29]
 gcode:
   {% if 'D' in params or 'J' in params %}
@@ -138,7 +138,7 @@ other `G29` functionality from Marlin, we just need the bed mesh clear functiona
 
 `G30.cfg`
 
-```
+```jinja
 [gcode_macro G30]
 gcode:
   {% set x = params.X | default(0) | float %}
