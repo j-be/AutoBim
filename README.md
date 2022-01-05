@@ -172,7 +172,8 @@ gcode:
   {% endif %}
 ```
 
-**Please note** that this macro DOES take into account the probe offset. Probe points may still require adjusting if the offset position exceeds max travel.  
+**Please note** that this macro DOES take into account the probe offset. Probe points may still require adjusting if the offset position exceeds max travel.
+Your printer configuration requires either `bltouch` or `probe` to declared, with `x_offset` and `y_offset` to be both set.   
 
 This macro will:
 
