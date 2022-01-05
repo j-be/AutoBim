@@ -192,7 +192,7 @@ X/Y travelling will occur after probing.
 Since there are quite some unknowns in the process, here a list of what **should** happen when you click the button in
 the navbar:
 
-| Step |                                                                                                                        | You | Message on Display |
+| Step | | You | Message on Display |
 |------|------------------------------------------------------------------------------------------------------------------------|-----|--------------------|
 | 1 | Home | | `wait...` |
 | 2 | Raise to Z=20 | | `wait...` |
@@ -201,7 +201,7 @@ the navbar:
 | 5 | Printer goes on probing until the difference is within threshold | Turn the leveling wheel/knob/lever | e.g. `-0.01 <<< (adjust)` for 0.01mm to low, turn left (i.e. clockwise) to correct              |
 | 6 | Measurement is within threshold | | `ok. moving to next` |
 | 6.5 | If "Delay before moving to next corner" is set, wait for that amount | | `ok. moving to next` |
-| 7 | If full round completed without a difference, we are done | | `done.`
+| 7 | If full round completed without a difference, we are done | | `done.` |
 | | Else, go to *Step 3* for the next corner | | `ok. moving to next` |
 
 If that is not what happens look at **Troubleshooting** below. If that doesn't help consider opening an issue detailing
