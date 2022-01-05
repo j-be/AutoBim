@@ -143,7 +143,7 @@ other `G29` functionality from Marlin, we just need the bed mesh clear functiona
 gcode:
   {% set x = params.X | default(0) | float %}
   {% set y = params.Y | default(0) | float %}
-  
+
   {% set x_offset = 0 | float %}
   {% set y_offset = 0 | float %}
 
@@ -154,10 +154,10 @@ gcode:
     {% set x_offset = printer.configfile.config.probe.x_offset | float %}
     {% set y_offset = printer.configfile.config.probe.y_offset | float %}
   {% endif %}
-    
+
   {% set y = y - y_offset | float %}
   {% set x = x - x_offset | float %}
-    
+
   {% if printer.toolhead.homed_axes != "xyz" %}
     { action_respond_info("XYZ must be homed first.") }
   {% else %}
@@ -176,7 +176,7 @@ gcode:
 ```
 
 **Please note** that this macro DOES take into account the probe offset. Probe points may still require adjusting if the offset position exceeds max travel.
-Your printer configuration requires either `bltouch` or `probe` to declared, with `x_offset` and `y_offset` to be both set.   
+Your printer configuration requires either `bltouch` or `probe` to declared, with `x_offset` and `y_offset` to be both set.
 
 This macro will:
 
