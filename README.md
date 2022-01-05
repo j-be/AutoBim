@@ -143,17 +143,20 @@ other `G29` functionality from Marlin, we just need the bed mesh clear functiona
 gcode:
   {% set x = params.X | default(0) | float %}
   {% set y = params.Y | default(0) | float %}
+  
+  {% set x_offset = 0 | float %}
+  {% set y_offset = 0 | float %}
 
   {% if printer.configfile.config.bltouch.x_offset is defined and printer.configfile.config.bltouch.y_offset is defined %}
-    {% set x_offset = printer.configfile.config.bltouch.x_offset | default(0) | float %}
-    {% set y_offset = printer.configfile.config.bltouch.y_offset | default(0) | float %}
+    {% set x_offset = printer.configfile.config.bltouch.x_offset | float %}
+    {% set y_offset = printer.configfile.config.bltouch.y_offset | float %}
   {% elif printer.configfile.config.probe.x_offset is defined and printer.configfile.config.probe.y_offset is defined %}
-    {% set x_offset = printer.configfile.config.probe.x_offset | default(0) | float %}
-    {% set y_offset = printer.configfile.config.probe.y_offset | default(0) | float %}
+    {% set x_offset = printer.configfile.config.probe.x_offset | float %}
+    {% set y_offset = printer.configfile.config.probe.y_offset | float %}
   {% endif %}
     
-    {% set y = y - y_offset | float %}
-    {% set x = x - x_offset | float %}
+  {% set y = y - y_offset | float %}
+  {% set x = x - x_offset | float %}
     
   {% if printer.toolhead.homed_axes != "xyz" %}
     { action_respond_info("XYZ must be homed first.") }
