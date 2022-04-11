@@ -96,7 +96,7 @@ $(function () {
             self.settings.settings.plugins.autobim.probe_points.push({x: '0', y: '0'});
         }
 
-        removeCorner = function(_) {
+        self.removeCorner = function(_) {
             self.settings.settings.plugins.autobim.probe_points.pop();
         }
 

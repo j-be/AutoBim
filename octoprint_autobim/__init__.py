@@ -231,7 +231,6 @@ class AutobimPlugin(
 		if before_gcode:
 			self._printer.commands(self._filter_commands(before_gcode))
 
-		changed = True
 		threshold = self._settings.get_float(["threshold"])
 		multipass = self._settings.get_boolean(["multipass"])
 		next_point_delay = self._settings.get_float(["next_point_delay"])
