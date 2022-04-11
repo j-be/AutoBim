@@ -24,6 +24,8 @@ jobs:
 
     - name: Check out the code
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
     - name: Select Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
@@ -35,3 +37,10 @@ jobs:
 
     - name: Run tests
       run: pytest
+
+    - name: SonarCloud Scan
+      if: matrix.python-version == '3.x'
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
