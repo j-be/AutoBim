@@ -236,52 +236,56 @@ class AutobimPlugin(
 		multipass = self._settings.get_boolean(["multipass"])
 		next_point_delay = self._settings.get_float(["next_point_delay"])
 
-		# Default reference is Z=0
+		corner_index = 0
+		correct_corners = 0
 		if self._settings.get_boolean(["first_corner_is_reference"]):
-			reference = None
+			self._logger.info("Treating first corner as reference")
+			self._printer.commands("M117 Getting reference...")
+
+			corner = self.get_probe_points()[0]
+			result = self.g30.do(corner)
+			if result.abort:
+				self._logger.info("'None' from queue means user abort")
+				return
+			elif not result.has_value():
+				self.abort_now("Cannot probe X%s Y%s! Please check settings!" % corner)
+				return
+
+			reference = result.value
+			corner_index = 1
+			correct_corners = 1
+			self._printer.commands("M117 wait...")
 		else:
+			# Default reference is Z=0
 			reference = 0
 
-		while changed and self.running:
-			changed = False
-			for index, corner in enumerate(self.get_probe_points()):
-				if reference is None:
-					self._logger.info("Treating first corner as reference")
-					self._printer.commands("M117 Getting reference...")
+		while correct_corners < len(self.get_probe_points()) and self.running:
+			corner = self.get_probe_points()[corner_index]
+			corner_index = (corner_index + 1) % len(self.get_probe_points())
 
-					result = self.g30.do(corner)
-					if result.abort:
-						self._logger.info("'None' from queue means user abort")
-						return
-					elif not result.has_value():
-						self.abort_now("Cannot probe X%s Y%s! Please check settings!" % corner)
-						return
+			delta = 2 * threshold
+			while abs(delta) >= threshold and self.running:
+				z_current = self.g30.do(corner)
 
-					reference = result.value
-					self._printer.commands("M117 wait...")
+				if z_current.abort:
+					self._logger.info("'None' from queue means user abort")
+					return
+				elif not z_current.has_value():
+					self.abort_now("Cannot probe X%s Y%s! Please check settings!" % corner)
+					return
 				else:
-					delta = 2 * threshold
-					while abs(delta) >= threshold and self.running:
-						z_current = self.g30.do(corner)
+					delta = z_current.value - reference
 
-						if z_current.abort:
-							self._logger.info("'None' from queue means user abort")
-							return
-						elif not z_current.has_value():
-							self.abort_now("Cannot probe X%s Y%s! Please check settings!" % corner)
-							return
-						else:
-							delta = z_current.value - reference
+				if abs(delta) >= threshold:
+					if multipass:
+						correct_corners = 0
+					self._printer.commands("M117 %s" % self.get_message(delta))
+				else:
+					self._printer.commands("M117 %s" % self.get_message())
 
-						if abs(delta) >= threshold:
-							if multipass:
-								changed = True
-							self._printer.commands("M117 %s" % self.get_message(delta))
-						else:
-							self._printer.commands("M117 %s" % self.get_message())
-
-					if next_point_delay:
-						time.sleep(next_point_delay)
+			correct_corners += 1
+			if next_point_delay:
+				time.sleep(next_point_delay)
 
 		self._printer.commands("M117 done")
 		self.running = False
