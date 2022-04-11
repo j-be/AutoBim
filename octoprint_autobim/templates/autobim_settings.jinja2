@@ -78,6 +78,24 @@
     </div>
 
     <div class="control-group">
+        <legend>Custom GCode</legend>
+        <label class="control-label">
+            You can add custom GCode. This will be executed before AutoBim does its thing (right after homing) and when
+            AutoBim completes - regardless on if it was successful, error, or was aborted by the user.
+        </label>
+
+        <label class="control-label">Before</label>
+        <div class="controls">
+            <textarea class="input-block-level" data-bind="value: settings.settings.plugins.autobim.before_gcode"></textarea>
+        </div>
+
+        <label class="control-label">After</label>
+        <div class="controls">
+            <textarea class="input-block-level" data-bind="value: settings.settings.plugins.autobim.after_gcode"></textarea>
+        </div>
+    </div>
+
+    <div class="control-group">
         <legend>Danger Zone - only touch if you know what you are doing!</legend>
         <div class="row">
             <label class="control-label">Custom G30 response pattern</label>

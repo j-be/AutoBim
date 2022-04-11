@@ -153,6 +153,8 @@ class AutobimPlugin(
 			next_point_delay=0.0,
 			first_corner_is_reference=False,
 			g30_regex="",
+			before_gcode=None,
+			after_gcode=None,
 		)
 
 	##~~ Gcode received hook
@@ -224,6 +226,11 @@ class AutobimPlugin(
 		# Jettison saved mesh
 		self._clear_saved_mesh()
 
+		# Custom GCode
+		before_gcode = self._settings.get(["before_gcode"])
+		if before_gcode:
+			self._printer.commands(self._filter_commands(before_gcode))
+
 		changed = True
 		threshold = self._settings.get_float(["threshold"])
 		multipass = self._settings.get_boolean(["multipass"])
@@ -278,6 +285,12 @@ class AutobimPlugin(
 
 		self._printer.commands("M117 done")
 		self.running = False
+
+		# Custom GCode
+		after_gcode = self._settings.get(["after_gcode"])
+		if after_gcode:
+			self._printer.commands(self._filter_commands(after_gcode))
+
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="completed"))
 
 	def get_probe_points(self):
@@ -301,6 +314,12 @@ class AutobimPlugin(
 		self.running = False
 		for handler in self.handlers:
 			handler.abort()
+
+		# Custom GCode
+		after_gcode = self._settings.get(["after_gcode"])
+		if after_gcode:
+			self._printer.commands(self._filter_commands(after_gcode))
+
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="aborted", message=msg))
 
 	def _clear_saved_mesh(self):
@@ -308,6 +327,16 @@ class AutobimPlugin(
 			self._printer.commands("G29 D")
 		else:
 			self._printer.commands("G29 J")
+
+	def _filter_commands(self, gcode):
+		if not gcode:
+			return []
+
+		ret = []
+		for command in gcode.split("\n"):
+			if command and command.strip():
+				ret.append(command.strip())
+		return ret
 
 __plugin_name__ = "AutoBim"
 __plugin_pythoncompat__ = ">=2.7,<4"  # python 2 and 3
