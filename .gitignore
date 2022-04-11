@@ -8,3 +8,7 @@ dist
 .DS_Store
 *.zip
 python2env
+
+## Coverage reports
+.coverage
+coverage.xml
