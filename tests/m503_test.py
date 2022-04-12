@@ -1,6 +1,6 @@
 import pytest
 
-from octoprint_autobim import M503Handler
+from octoprint_autobim.m503 import M503Handler
 from tests.mocks import MockPrinter
 
 

@@ -1,6 +1,6 @@
 import logging
 
-from octoprint_autobim import AutobimPlugin
+from octoprint_autobim.autobim import AutobimPlugin
 
 
 class MockPrinter(object):

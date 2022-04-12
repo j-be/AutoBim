@@ -4,7 +4,7 @@ from time import sleep
 
 import pytest
 
-from octoprint_autobim import AutobimPlugin
+from octoprint_autobim.autobim import AutobimPlugin
 from tests.mocks import MockPrinter, MockSettings, MockPluginManager
 
 
