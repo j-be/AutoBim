@@ -112,7 +112,7 @@ class AutobimPlugin(
 			thread = threading.Thread(target=self.autobim)
 			thread.start()
 		elif command == "abort":
-			self.abort_now("Aborted by user")
+			self._abort_now("Aborted by user")
 		elif command == "status":
 			return jsonify({"running": self.running}), 200
 		elif command == "home":
@@ -168,10 +168,6 @@ class AutobimPlugin(
 
 		return line
 
-	def _set_ubl_flag(self, value):
-		self._settings.set_boolean(["has_ubl"], value)
-		self._settings.save(trigger_event=True)
-
 	##~~ AtCommand hook
 
 	def atcommand_handler(self, comm, phase, command, parameters, tags=None, *args, **kwargs):
@@ -209,6 +205,10 @@ class AutobimPlugin(
 				type="info",
 				message="Seems like no UBL system is active! If so, please change the setting."))
 			self._set_ubl_flag(False)
+
+	def _set_ubl_flag(self, value):
+		self._settings.set_boolean(["has_ubl"], value)
+		self._settings.save(trigger_event=True)
 
 	def autobim(self):
 		if self.running:
@@ -270,9 +270,9 @@ class AutobimPlugin(
 				if abs(delta) >= threshold:
 					if multipass:
 						correct_corners = 0
-					self._printer.commands("M117 %s" % self.get_message(delta))
+					self._printer.commands("M117 %s" % self._get_message(delta))
 				else:
-					self._printer.commands("M117 %s" % self.get_message())
+					self._printer.commands("M117 %s" % self._get_message())
 
 			correct_corners += 1
 			if next_point_delay:
@@ -292,7 +292,7 @@ class AutobimPlugin(
 		points = self._settings.get(['probe_points'])
 		return [(p['x'], p['y']) for p in points]
 
-	def get_message(self, diff=None):
+	def _get_message(self, diff=None):
 		if not diff:
 			return "ok. moving to next"
 
@@ -303,7 +303,7 @@ class AutobimPlugin(
 			msg = "%.2f " % diff + ">>>"
 		return msg + " (adjust)"
 
-	def abort_now(self, msg):
+	def _abort_now(self, msg):
 		self._logger.error(msg)
 		self._printer.commands("M117 %s" % msg)
 		self.running = False
@@ -338,5 +338,5 @@ class AutobimPlugin(
 		if result.abort:
 			self._logger.info("'None' from queue means user abort")
 		elif not result.has_value():
-			self.abort_now("Cannot probe X%s Y%s! Please check settings!" % point)
+			self._abort_now("Cannot probe X%s Y%s! Please check settings!" % point)
 		return result
