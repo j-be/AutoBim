@@ -33,7 +33,7 @@ def test_autobim_abort_rightaway(plugin):
 
 	assert plugin.running is True
 
-	plugin.abort_now("Aborting Test")
+	plugin.on_api_command("abort", {})
 
 	assert plugin.running is False
 
@@ -52,7 +52,7 @@ def test_autobim_ubl(plugin):
 
 	assert plugin._printer.sent_commands == ['M503', 'M117 wait...', "G28 ['x', 'y', 'z']", 'G0 Z20', 'G29 D','G30 X30 Y30']
 
-	plugin.abort_now("")
+	plugin.on_api_command("abort", {})
 
 	assert plugin.running is False
 
@@ -85,7 +85,7 @@ def test_autobim_no_ubl(plugin):
 	assert plugin._printer.sent_commands == ['M117 -0.01 <<< (adjust)', 'G30 X30 Y30']
 	del plugin._printer.sent_commands[:]
 
-	plugin.abort_now("")
+	plugin.on_api_command("abort", {})
 
 	assert plugin.running is False
 

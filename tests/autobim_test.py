@@ -85,7 +85,7 @@ def test_first_corner_is_reference(plugin):
 	assert plugin._printer.sent_commands == ['M117 -1.00 <<< (adjust)', 'G30 X30 Y200']
 	del plugin._printer.sent_commands[:]
 
-	plugin.abort_now("")
+	plugin.on_api_command("abort", {})
 
 	assert plugin.running is False
 
@@ -111,7 +111,7 @@ def test_invert_arrows(plugin):
 
 	assert plugin._printer.sent_commands == ['M117 3.00 <<< (adjust)', 'G30 X30 Y30']
 
-	plugin.abort_now("")
+	plugin.on_api_command("abort", {})
 
 	assert plugin.running is False
 
@@ -158,7 +158,7 @@ def test_multipass_on(plugin):
 		assert plugin._printer.sent_commands[2] == "M117 ok. moving to next"
 
 	assert plugin.running is True
-	plugin.abort_now("")
+	plugin.on_api_command("abort", {})
 
 	thread.join(0)
 
@@ -174,7 +174,7 @@ def test_before_gcode(plugin):
 		'M117 wait...', "G28 ['x', 'y', 'z']", 'G0 Z20', 'G29 J', 'M117 123', 'M117 321', 'G30 X30 Y30'
 	]
 
-	plugin.abort_now("")
+	plugin.on_api_command("abort", {})
 	thread.join(0)
 
 
@@ -187,10 +187,10 @@ def test_after_gcode_abort(plugin):
 
 	del plugin._printer.sent_commands[:]
 
-	plugin.abort_now("aborting...")
+	plugin.on_api_command("abort", {})
 	thread.join(0)
 
-	assert plugin._printer.sent_commands == ['M117 aborting...', 'M117 123', 'M117 321']
+	assert plugin._printer.sent_commands == ['M117 Aborted by user', 'M117 123', 'M117 321']
 
 
 def test_after_gcode_success(plugin):
@@ -233,3 +233,70 @@ def test_all_in_a_row(plugin):
 	assert plugin._printer.sent_commands[-1] == "M117 done"
 
 	thread.join(0)
+
+
+def test_at_command(plugin):
+	assert plugin.running is False
+	plugin.atcommand_handler(None, None, "AUTOBIM", None);
+	sleep(0.01)
+
+	assert plugin.running is True
+	plugin.on_api_command("abort", {})
+	sleep(0.01)
+
+	assert plugin.running is False
+
+
+def test_only_one_running(plugin):
+	assert plugin.running is False
+
+	plugin.atcommand_handler(None, None, "AUTOBIM", None);
+	sleep(0.01)
+
+	assert plugin.running is True
+
+	thread = threading.Thread(target=plugin.autobim)
+	thread.start()
+	sleep(0.01)
+
+	assert thread.is_alive() is False
+	assert plugin.running is True
+
+	plugin.on_api_command("abort", {})
+	sleep(0.01)
+
+	assert plugin.running is False
+
+
+def test_show_in_navbar(plugin):
+	plugin._settings.set_boolean(["button_in_navbar"], True)
+	assert plugin.get_template_configs() == [
+		dict(type="settings", custom_bindings=True),
+		dict(type="navbar", template="autobim_button.jinja2"),
+	]
+	plugin._settings.set_boolean(["button_in_navbar"], False)
+	assert plugin.get_template_configs() == [dict(type="settings", custom_bindings=True)]
+
+
+def test_next_point_delay(plugin):
+	plugin._settings.set(["next_point_delay"], 0.1)
+
+	thread = threading.Thread(target=plugin.autobim)
+	thread.start()
+	sleep(0.01)
+
+	point = plugin.get_probe_points()[0]
+	assert plugin._printer.sent_commands[-1] == "G30 X%s Y%s" % point
+	plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 0.0" % point)
+	sleep(0.01)
+	assert plugin._printer.sent_commands[-1] == "M117 ok. moving to next"
+	del plugin._printer.sent_commands[:]
+
+	for point in plugin.get_probe_points()[1:]:
+		assert plugin._printer.sent_commands == []
+		sleep(0.2)
+		assert plugin._printer.sent_commands[-1] == "G30 X%s Y%s" % point
+		plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 0.0" % point)
+		sleep(0.1)
+		assert plugin._printer.sent_commands[-1] == "M117 ok. moving to next"
+		del plugin._printer.sent_commands[:]
