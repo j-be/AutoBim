@@ -194,7 +194,6 @@ class AutobimPlugin(
 	def _handle_m503_result(self, result):
 		if result.abort:
 			self._logger.info("'None' from queue means user abort")
-			return
 		elif not result.has_value:
 			self._plugin_manager.send_plugin_message(self._identifier, dict(
 				type="warn",
@@ -235,28 +234,23 @@ class AutobimPlugin(
 		multipass = self._settings.get_boolean(["multipass"])
 		next_point_delay = self._settings.get_float(["next_point_delay"])
 
+		# Default reference is Z=0
+		reference = 0
 		corner_index = 0
 		correct_corners = 0
+
 		if self._settings.get_boolean(["first_corner_is_reference"]):
 			self._logger.info("Treating first corner as reference")
 			self._printer.commands("M117 Getting reference...")
 
-			corner = self.get_probe_points()[0]
-			result = self.g30.do(corner)
-			if result.abort:
-				self._logger.info("'None' from queue means user abort")
-				return
-			elif not result.has_value():
-				self.abort_now("Cannot probe X%s Y%s! Please check settings!" % corner)
+			result = self._probe_point(self.get_probe_points()[0])
+			if not result.has_value():
 				return
 
 			reference = result.value
 			corner_index = 1
 			correct_corners = 1
 			self._printer.commands("M117 wait...")
-		else:
-			# Default reference is Z=0
-			reference = 0
 
 		while correct_corners < len(self.get_probe_points()) and self.running:
 			corner = self.get_probe_points()[corner_index]
@@ -264,17 +258,12 @@ class AutobimPlugin(
 
 			delta = 2 * threshold
 			while abs(delta) >= threshold and self.running:
-				z_current = self.g30.do(corner)
 
-				if z_current.abort:
-					self._logger.info("'None' from queue means user abort")
+				z_current = self._probe_point(corner)
+				if not z_current.has_value():
 					return
-				elif not z_current.has_value():
-					self.abort_now("Cannot probe X%s Y%s! Please check settings!" % corner)
-					return
-				else:
-					delta = z_current.value - reference
 
+				delta = z_current.value - reference
 				if abs(delta) >= threshold:
 					if multipass:
 						correct_corners = 0
@@ -340,3 +329,11 @@ class AutobimPlugin(
 			if command and command.strip():
 				ret.append(command.strip())
 		return ret
+
+	def _probe_point(self, point):
+		result = self.g30.do(point)
+		if result.abort:
+			self._logger.info("'None' from queue means user abort")
+		elif not result.has_value():
+			self.abort_now("Cannot probe X%s Y%s! Please check settings!" % point)
+		return result

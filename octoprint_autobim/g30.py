@@ -47,4 +47,3 @@ class G30Handler(AsyncCommand):
 		match = self.pattern.match(line)
 		if match:
 			self._register_result(Result.of(float(match.group(1))))
-			return

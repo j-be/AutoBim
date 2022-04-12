@@ -68,8 +68,9 @@ def test_first_corner_is_reference(plugin):
 
 	assert plugin._settings.get_boolean(["first_corner_is_reference"]) is True
 
-	assert plugin._printer.sent_commands == ['M117 wait...', "G28 ['x', 'y', 'z']", 'G0 Z20', 'G29 J',
-											 'M117 Getting reference...', 'G30 X30 Y30']
+	assert plugin._printer.sent_commands == [
+		'M117 wait...', "G28 ['x', 'y', 'z']", 'G0 Z20', 'G29 J', 'M117 Getting reference...', 'G30 X30 Y30'
+	]
 	del plugin._printer.sent_commands[:]
 
 	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: 3.0")
@@ -169,8 +170,9 @@ def test_before_gcode(plugin):
 	thread.start()
 	sleep(0.01)
 
-	assert plugin._printer.sent_commands == ['M117 wait...', "G28 ['x', 'y', 'z']", 'G0 Z20', 'G29 J', 'M117 123',
-											 'M117 321', 'G30 X30 Y30']
+	assert plugin._printer.sent_commands == [
+		'M117 wait...', "G28 ['x', 'y', 'z']", 'G0 Z20', 'G29 J', 'M117 123', 'M117 321', 'G30 X30 Y30'
+	]
 
 	plugin.abort_now("")
 	thread.join(0)
