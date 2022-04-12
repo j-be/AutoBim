@@ -211,6 +211,9 @@ class AutobimPlugin(
 			self._set_ubl_flag(False)
 
 	def autobim(self):
+		if self.running:
+			return
+
 		self.running = True
 
 		self.check_state()
