@@ -10,6 +10,7 @@ from flask_login import current_user
 
 from octoprint_autobim.g30 import G30Handler
 from octoprint_autobim.m503 import M503Handler
+from octoprint_autobim.utils import filter_commands
 
 
 class AutoBimError(Exception):
@@ -231,7 +232,7 @@ class AutobimPlugin(
 		# Custom GCode
 		before_gcode = self._settings.get(["before_gcode"])
 		if before_gcode:
-			self._printer.commands(self._filter_commands(before_gcode))
+			self._printer.commands(filter_commands(before_gcode))
 
 		threshold = self._settings.get_float(["threshold"])
 		multipass = self._settings.get_boolean(["multipass"])
@@ -284,7 +285,7 @@ class AutobimPlugin(
 		# Custom GCode
 		after_gcode = self._settings.get(["after_gcode"])
 		if after_gcode:
-			self._printer.commands(self._filter_commands(after_gcode))
+			self._printer.commands(filter_commands(after_gcode))
 
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="completed"))
 
@@ -313,7 +314,7 @@ class AutobimPlugin(
 		# Custom GCode
 		after_gcode = self._settings.get(["after_gcode"])
 		if after_gcode:
-			self._printer.commands(self._filter_commands(after_gcode))
+			self._printer.commands(filter_commands(after_gcode))
 
 		self._plugin_manager.send_plugin_message(self._identifier, dict(type="aborted", message=msg))
 
@@ -322,16 +323,6 @@ class AutobimPlugin(
 			self._printer.commands("G29 D")
 		else:
 			self._printer.commands("G29 J")
-
-	def _filter_commands(self, gcode):
-		if not gcode:
-			return []
-
-		ret = []
-		for command in gcode.split("\n"):
-			if command and command.strip():
-				ret.append(command.strip())
-		return ret
 
 	def _probe_point(self, point):
 		result = self.g30.do(point)
