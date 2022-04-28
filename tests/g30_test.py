@@ -102,6 +102,7 @@ def test_pattern_selection(g30):
 	g30._start((1, 2))
 	assert g30.pattern.pattern == "^// Result is z=(-?\\d+\\.\\d+)$"
 
+
 def test_pattern_from_settings(g30):
 	settings = g30._settings
 	printer = g30._printer

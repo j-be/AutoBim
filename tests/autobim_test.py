@@ -237,7 +237,7 @@ def test_all_in_a_row(plugin):
 
 def test_at_command(plugin):
 	assert plugin.running is False
-	plugin.atcommand_handler(None, None, "AUTOBIM", None);
+	plugin.atcommand_handler(None, None, "AUTOBIM", None)
 	sleep(0.01)
 
 	assert plugin.running is True
@@ -250,7 +250,7 @@ def test_at_command(plugin):
 def test_only_one_running(plugin):
 	assert plugin.running is False
 
-	plugin.atcommand_handler(None, None, "AUTOBIM", None);
+	plugin.atcommand_handler(None, None, "AUTOBIM", None)
 	sleep(0.01)
 
 	assert plugin.running is True
