@@ -97,12 +97,25 @@
 
     <div class="control-group">
         <legend>Danger Zone - only touch if you know what you are doing!</legend>
-        <div class="row">
-            <label class="control-label">Custom G30 response pattern</label>
-            <div class="controls">
-                <input type="text" placeholder="Use Default" data-bind="value: settings.settings.plugins.autobim.g30_regex" />
-            </div>
-        </div>
+
+        <h5>Custom probing command sequence</h5>
+        <textarea class="input-block-level" placeholder="G30 X%s Y%s" data-bind="value: settings.settings.plugins.autobim.custom_g30"></textarea>
+        <p>
+            <span class="help-block">
+                If your probe requires it you can set a custom command sequence for probing here. At least one command needs
+                to contain the exact sequence <code>X%s Y%s</code>. The <code>%s</code> will be replaced by the respective
+                point coordinates. As an example, the following block work for
+                <a href="https://euclidprobe.github.io/" target="_blank">Euclid Probe</a>:
+            </span>
+        </p>
+<pre>
+G30 X%s Y%s E0
+G0 Z15</pre>
+
+        <hr>
+
+        <h5>Custom G30 response pattern</h5>
+        <input type="text" placeholder="Use Default" data-bind="value: settings.settings.plugins.autobim.g30_regex" />
         <p class="help-block">
             If the default patterns for parsing the Probe results do not work for you, a custom pattern can be
             specified here. Blank = use default pattern. This should be a Regex which matches the Z value of the

@@ -1,6 +1,7 @@
 import re
 
 from octoprint_autobim.async_command import AsyncCommand, Result
+from octoprint_autobim.utils import filter_commands
 
 
 MARLIN_PATTERN = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
@@ -37,7 +38,17 @@ class G30Handler(AsyncCommand):
 	def _start(self, point):
 		self._update_pattern_if_changed()
 		self._set_running()
-		self._printer.commands("G30 X%s Y%s" % point)
+		custom_g30 = filter_commands(self._settings.get(["custom_g30"]))
+		if not custom_g30:
+			self._printer.commands("G30 X%s Y%s" % point)
+		else:
+			self._ok_is_error = False
+			for command in custom_g30:
+				if "X%s Y%s" in command:
+					self._intercept_output = True
+					self._printer.commands(command % point)
+				else:
+					self._printer.commands(command)
 
 	def _handle_internal(self, line):
 		if self._ok_is_error and "ok" == line.strip():

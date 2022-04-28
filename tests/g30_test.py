@@ -113,3 +113,23 @@ def test_pattern_from_settings(g30):
 		printer.firmware_info = {"name": firmware}
 		g30._start((1, 2))
 		assert g30.pattern.pattern == ".*"
+
+
+def test_custom_g30(g30):
+	settings = g30._settings
+	printer = g30._printer
+
+	settings.set(["custom_g30"], "  \t\n\n G0 Z10  \n  \t G30 X%s Y%s E0  \r\n G0 Z15")
+
+	g30._start((1, 2))
+	assert printer.sent_commands == ["G0 Z10", "G30 X1 Y2 E0", "G0 Z15"]
+
+	g30.handle("ok")
+	g30.handle("Bed X: 1.0 Y: 2.0 Z: 3.0")
+	g30.handle("ok")
+
+	result = g30._get(0)
+	assert result.has_value() is True
+	assert result.error is False
+	assert result.abort is False
+	assert result.value == 3.0
