@@ -8,6 +8,21 @@ from octoprint_autobim.autobim import AutobimPlugin
 from tests.mocks import MockPrinter, MockSettings, MockPluginManager
 
 
+class ThreadWithValue(threading.Thread):
+	def __init__(self, fn, args):
+		super(ThreadWithValue, self).__init__()
+		self.fn = fn
+		self.args = args
+		self.result = None
+
+	def run(self):
+		self.result = self.fn(*self.args)
+
+	def get(self):
+		self.join(0)
+		return self.result
+
+
 @pytest.fixture
 def plugin():
 	plugin = AutobimPlugin()
@@ -30,7 +45,7 @@ def plugin():
 def test_g30_test(plugin):
 	point = (1, 2)
 
-	thread = threading.Thread(target=plugin.on_test_point, args=(point,))
+	thread = ThreadWithValue(plugin.on_test_point, (point,))
 	thread.start()
 	sleep(0.01)
 
@@ -40,13 +55,13 @@ def test_g30_test(plugin):
 	assert plugin._printer.sent_commands == ['G30 X1 Y2']
 	assert {'message': 'Point X1 Y2 seems to work fine', 'type': 'info'} in plugin._plugin_manager.sent_messages
 
-	thread.join()
+	assert thread.get()
 
 
 def test_g30_test_fails(plugin):
 	point = (1, 2)
 
-	thread = threading.Thread(target=plugin.on_test_point, args=(point,))
+	thread = ThreadWithValue(plugin.on_test_point, (point,))
 	thread.start()
 	sleep(0.01)
 
@@ -56,7 +71,7 @@ def test_g30_test_fails(plugin):
 	assert plugin._printer.sent_commands == ['G30 X1 Y2']
 	assert {'message': 'Point X1 Y2 seems to be unreachable!', 'type': 'error'} in plugin._plugin_manager.sent_messages
 
-	thread.join()
+	assert not thread.get()
 
 
 def test_first_corner_is_reference(plugin):
@@ -300,3 +315,27 @@ def test_next_point_delay(plugin):
 		sleep(0.1)
 		assert plugin._printer.sent_commands[-1] == "M117 ok. moving to next"
 		del plugin._printer.sent_commands[:]
+
+
+def test_test_points(plugin):
+	thread = ThreadWithValue(plugin.on_test_points, ([{'x': 1, 'y': 2}, {'x': 2, 'y': 3}],))
+	thread.start()
+	sleep(0.01)
+
+	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: 3.0")
+	sleep(0.01)
+
+	plugin.process_gcode(None, "ok")
+	sleep(0.01)
+
+	assert plugin._printer.sent_commands == ["G28 ['x', 'y', 'z']", 'G30 X1 Y2', 'G30 X2 Y3']
+	assert plugin._plugin_manager.sent_messages == [
+		{'message': 'Point X1 Y2 seems to work fine', 'type': 'info'},
+		{'message': 'Point X2 Y3 seems to be unreachable!', 'type': 'error'},
+	]
+
+	x = thread.get()
+	assert x == {'results': [
+		{'point': {'x': 1, 'y': 2}, 'result': True},
+		{'point': {'x': 2, 'y': 3}, 'result': False},
+	]}
