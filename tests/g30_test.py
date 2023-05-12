@@ -15,6 +15,7 @@ def g30():
 def test_basic(g30):
 	g30._start((1, 2))
 	g30.handle("Bed X: 1.0 Y: 2.0 Z: 3.0")
+	g30.handle("ok")
 
 	result = g30._get(1)
 	assert result.has_value() is True
@@ -44,7 +45,9 @@ def test_double_line(g30):
 	g30._start((1, 2))
 
 	g30.handle("Bed X: 1.0 Y: 2.0 Z: 3.0")
+	g30.handle("ok")
 	g30.handle("Bed X: 1.0 Y: 2.0 Z: 4.0")
+	g30.handle("ok")
 
 	result = g30._get(1)
 	assert result.has_value() is True
@@ -71,9 +74,11 @@ def test_abort(g30):
 def test_start_flush(g30):
 	g30._start((1, 2))
 	g30.handle("Bed X: 1.0 Y: 2.0 Z: 3.0")
+	g30.handle("ok")
 
 	g30._start((1, 2))
 	g30.handle("Bed X: 1.0 Y: 2.0 Z: 4.0")
+	g30.handle("ok")
 
 	result = g30._get(1)
 	assert result.has_value() is True
@@ -126,6 +131,7 @@ def test_custom_g30(g30):
 
 	g30.handle("ok")
 	g30.handle("Bed X: 1.0 Y: 2.0 Z: 3.0")
+	g30.handle("ok")
 	g30.handle("ok")
 
 	result = g30._get(0)

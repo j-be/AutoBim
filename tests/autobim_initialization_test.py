@@ -46,6 +46,7 @@ def test_autobim_ubl(plugin):
 	sleep(0.01)
 
 	plugin.process_gcode(None, "Unified Bed Leveling System v1.01")
+	plugin.process_gcode(None, "ok")
 
 	sleep(0.01)
 	assert plugin._settings.get_boolean(["has_ubl"]) is True
@@ -74,12 +75,14 @@ def test_autobim_no_ubl(plugin):
 
 	del plugin._printer.sent_commands[:]
 	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: 3.0")
+	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 
 	assert plugin._printer.sent_commands == ['M117 3.00 >>> (adjust)', 'G30 X30 Y30']
 	del plugin._printer.sent_commands[:]
 
 	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: -0.015")
+	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 
 	assert plugin._printer.sent_commands == ['M117 -0.01 <<< (adjust)', 'G30 X30 Y30']

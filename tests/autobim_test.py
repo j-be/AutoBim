@@ -50,6 +50,7 @@ def test_g30_test(plugin):
 	sleep(0.01)
 
 	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: 3.0")
+	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 
 	assert plugin._printer.sent_commands == ['G30 X1 Y2']
@@ -89,12 +90,14 @@ def test_first_corner_is_reference(plugin):
 	del plugin._printer.sent_commands[:]
 
 	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: 3.0")
+	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 
 	assert plugin._printer.sent_commands == ['M117 wait...', 'G30 X30 Y200']
 	del plugin._printer.sent_commands[:]
 
 	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: 2.0")
+	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 
 	assert plugin._printer.sent_commands == ['M117 -1.00 <<< (adjust)', 'G30 X30 Y200']
@@ -114,6 +117,7 @@ def test_invert_arrows(plugin):
 
 	del plugin._printer.sent_commands[:]
 	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: 3.0")
+	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 
 	plugin._settings.set_boolean(["invert"], True)
@@ -122,6 +126,7 @@ def test_invert_arrows(plugin):
 	del plugin._printer.sent_commands[:]
 
 	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: 3.0")
+	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 
 	assert plugin._printer.sent_commands == ['M117 3.00 <<< (adjust)', 'G30 X30 Y30']
@@ -143,10 +148,12 @@ def test_multipass_off(plugin):
 	for point in plugin.get_probe_points():
 		del plugin._printer.sent_commands[:]
 		plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 3.0" % point)
+		plugin.process_gcode(None, "ok")
 		sleep(0.01)
 
 		assert plugin._printer.sent_commands == ["M117 3.00 >>> (adjust)", "G30 X%s Y%s" % point]
 		plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 0.0" % point)
+		plugin.process_gcode(None, "ok")
 		sleep(0.01)
 		assert plugin._printer.sent_commands[2] == "M117 ok. moving to next"
 
@@ -165,10 +172,12 @@ def test_multipass_on(plugin):
 	for point in plugin.get_probe_points():
 		del plugin._printer.sent_commands[:]
 		plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 3.0" % point)
+		plugin.process_gcode(None, "ok")
 		sleep(0.01)
 
 		assert plugin._printer.sent_commands == ["M117 3.00 >>> (adjust)", "G30 X%s Y%s" % point]
 		plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 0.0" % point)
+		plugin.process_gcode(None, "ok")
 		sleep(0.01)
 		assert plugin._printer.sent_commands[2] == "M117 ok. moving to next"
 
@@ -218,6 +227,7 @@ def test_after_gcode_success(plugin):
 	for point in plugin.get_probe_points():
 		del plugin._printer.sent_commands[:]
 		plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 0.0" % point)
+		plugin.process_gcode(None, "ok")
 		sleep(0.01)
 
 	assert plugin.running is False
@@ -236,11 +246,13 @@ def test_all_in_a_row(plugin):
 	point = plugin.get_probe_points()[0]
 	for delta in [3, 0]:
 		plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: %s.0" % (point[0], point[1], delta))
+		plugin.process_gcode(None, "ok")
 		sleep(0.01)
 
 	for point in plugin.get_probe_points()[1:]:
 		assert plugin._printer.sent_commands[-1] == "G30 X%s Y%s" % point
 		plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 0.0" % point)
+		plugin.process_gcode(None, "ok")
 		sleep(0.01)
 		assert plugin._printer.sent_commands[-2] == "M117 ok. moving to next"
 
@@ -303,6 +315,7 @@ def test_next_point_delay(plugin):
 	point = plugin.get_probe_points()[0]
 	assert plugin._printer.sent_commands[-1] == "G30 X%s Y%s" % point
 	plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 0.0" % point)
+	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 	assert plugin._printer.sent_commands[-1] == "M117 ok. moving to next"
 	del plugin._printer.sent_commands[:]
@@ -312,6 +325,7 @@ def test_next_point_delay(plugin):
 		sleep(0.2)
 		assert plugin._printer.sent_commands[-1] == "G30 X%s Y%s" % point
 		plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 0.0" % point)
+		plugin.process_gcode(None, "ok")
 		sleep(0.1)
 		assert plugin._printer.sent_commands[-1] == "M117 ok. moving to next"
 		del plugin._printer.sent_commands[:]
@@ -323,6 +337,7 @@ def test_test_points(plugin):
 	sleep(0.01)
 
 	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: 3.0")
+	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 
 	plugin.process_gcode(None, "ok")
@@ -348,6 +363,7 @@ def test_repeat_on_error(plugin):
 
 	del plugin._printer.sent_commands[:]
 	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: 0.0")
+	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 
 	assert plugin._printer.sent_commands == ['M117 ok. moving to next', 'G30 X30 Y200']
