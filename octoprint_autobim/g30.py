@@ -51,6 +51,10 @@ class G30Handler(AsyncCommand):
 					self._printer.commands(command)
 
 	def _handle_internal(self, line):
+		if "Error:Probing Failed" == line.strip():
+			self._register_result(Result.error())
+			return
+
 		if self._ok_is_error and "ok" == line.strip():
 			self._register_result(Result.error())
 			return

@@ -133,3 +133,16 @@ def test_custom_g30(g30):
 	assert result.error is False
 	assert result.abort is False
 	assert result.value == 3.0
+
+
+def test_retry_on_error(g30):
+	printer = g30._printer
+
+	g30._start((1, 2))
+	assert printer.sent_commands == ["G30 X1 Y2"]
+
+	g30.handle("Error:Probing Failed")
+	result = g30._get(0)
+	assert result.has_value() is False
+	assert result.error is True
+	assert result.abort is False

@@ -340,10 +340,18 @@ class AutobimPlugin(
 		else:
 			self._printer.commands("G29 J")
 
-	def _probe_point(self, point):
-		result = self.g30.do(point)
-		if result.abort:
-			self._logger.info("'None' from queue means user abort")
-		elif not result.has_value():
+	def _probe_point(self, point, max_tries=3):
+		result = None
+		counter = 0
+
+		while counter < max_tries:
+			counter += 1
+			result = self.g30.do(point)
+			if result.has_value() or result.abort:
+				return result
+			if counter < max_tries:
+				self._printer.commands("M117 Error, retrying X%s Y%s" % point)
+
+		if not result.has_value():
 			self._abort_now("Cannot probe X%s Y%s! Please check settings!" % point)
 		return result

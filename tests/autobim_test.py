@@ -339,3 +339,31 @@ def test_test_points(plugin):
 		{'point': {'x': 1, 'y': 2}, 'result': True},
 		{'point': {'x': 2, 'y': 3}, 'result': False},
 	]}
+
+
+def test_repeat_on_error(plugin):
+	thread = threading.Thread(target=plugin.autobim)
+	thread.start()
+	sleep(0.01)
+
+	del plugin._printer.sent_commands[:]
+	plugin.process_gcode(None, "Bed X: 1.0 Y: 2.0 Z: 0.0")
+	sleep(0.01)
+
+	assert plugin._printer.sent_commands == ['M117 ok. moving to next', 'G30 X30 Y200']
+	del plugin._printer.sent_commands[:]
+
+	# Try 3 times in total (1 above, 2 in here)
+	for i in range(2):
+		plugin.process_gcode(None, "Error:Probing Failed")
+		sleep(0.01)
+
+		assert plugin._printer.sent_commands == ['M117 Error, retrying X30 Y200', 'G30 X30 Y200']
+		del plugin._printer.sent_commands[:]
+
+	plugin.process_gcode(None, "Error:Probing Failed")
+	sleep(0.01)
+
+	assert plugin._printer.sent_commands == ['M117 Cannot probe X30 Y200! Please check settings!']
+	assert not plugin.running
+	thread.join(1)
