@@ -328,7 +328,7 @@ def test_test_points(plugin):
 	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 
-	assert plugin._printer.sent_commands == ["G28 ['x', 'y', 'z']", 'G30 X1 Y2', 'G30 X2 Y3']
+	assert plugin._printer.sent_commands == ['G30 X1 Y2', 'G30 X2 Y3']
 	assert plugin._plugin_manager.sent_messages == [
 		{'message': 'Point X1 Y2 seems to work fine', 'type': 'info'},
 		{'message': 'Point X2 Y3 seems to be unreachable!', 'type': 'error'},

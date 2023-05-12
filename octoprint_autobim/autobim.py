@@ -141,8 +141,6 @@ class AutobimPlugin(
 		return result.has_value()
 
 	def on_test_points(self, point_list):
-		self._printer.home(['x', 'y', 'z'])
-
 		results = []
 		self._logger.info("PointList: %s" % str(point_list))
 		for point in point_list:
