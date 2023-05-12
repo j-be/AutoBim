@@ -16,7 +16,7 @@ $(function () {
             return ko.pureComputed(function() {
                 let found = self.probeResults().find(result => result.point.x == point.x && result.point.y == point.y);
                 if (found) {
-                    return found.result ? 'Ok' : 'Not ok';
+                    return found.result ? 'Ok ✅' : 'Not ok ❌';
                 }
                 return '';
             }, this)
