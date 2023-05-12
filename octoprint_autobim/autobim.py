@@ -352,6 +352,6 @@ class AutobimPlugin(
 			if counter < max_tries:
 				self._printer.commands("M117 Error, retrying X%s Y%s" % point)
 
-		if not result.has_value():
+		if result and not result.has_value():
 			self._abort_now("Cannot probe X%s Y%s! Please check settings!" % point)
 		return result
