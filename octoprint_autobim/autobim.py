@@ -166,6 +166,7 @@ class AutobimPlugin(
 			button_in_navbar=True,
 			has_ubl=None,
 			next_point_delay=0.0,
+			next_probe_delay=0.0,
 			first_corner_is_reference=False,
 			g30_regex="",
 			before_gcode=None,
@@ -251,6 +252,7 @@ class AutobimPlugin(
 		threshold = self._settings.get_float(["threshold"])
 		multipass = self._settings.get_boolean(["multipass"])
 		next_point_delay = self._settings.get_float(["next_point_delay"])
+		next_probe_delay = self._settings.get_float(["next_probe_delay"])
 
 		# Default reference is Z=0
 		reference = 0
@@ -286,6 +288,8 @@ class AutobimPlugin(
 					if multipass:
 						correct_corners = 0
 					self._printer.commands("M117 %s" % self._get_message(delta))
+					if next_probe_delay:
+						time.sleep(next_probe_delay)
 				else:
 					self._printer.commands("M117 %s" % self._get_message())
 

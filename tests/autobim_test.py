@@ -383,3 +383,30 @@ def test_repeat_on_error(plugin):
 	assert plugin._printer.sent_commands == ['M117 Cannot probe X30 Y200! Please check settings!']
 	assert not plugin.running
 	thread.join(1)
+
+
+def test_delay_between_porbes(plugin):
+	plugin._settings.set(["next_probe_delay"], 0.1)
+
+	thread = threading.Thread(target=plugin.autobim)
+	thread.start()
+	sleep(0.01)
+	point = plugin.get_probe_points()[0]
+
+	# Delay on adjust
+	assert plugin._printer.sent_commands[-1] == "G30 X%s Y%s" % point
+	del plugin._printer.sent_commands[:]
+	plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 1.0" % point)
+	plugin.process_gcode(None, "ok")
+	sleep(0.02)
+	assert plugin._printer.sent_commands == ['M117 1.00 >>> (adjust)']
+	sleep(0.1)
+	assert len(plugin._printer.sent_commands) == 2
+	assert plugin._printer.sent_commands[1] == "G30 X%s Y%s" % point
+	del plugin._printer.sent_commands[:]
+
+	# No delay on ok
+	plugin.process_gcode(None, "Bed X: %s.0 Y: %s.0 Z: 0.0" % point)
+	plugin.process_gcode(None, "ok")
+	sleep(0.01)
+	assert plugin._printer.sent_commands[0] == 'M117 ok. moving to next'
