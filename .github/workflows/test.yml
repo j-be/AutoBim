@@ -9,17 +9,11 @@ on:
   push:
 
 jobs:
-  test:
-    name: Run Tests
+  test-python3:
+    name: Run Tests on Python 3
 
     runs-on: ubuntu-latest
     timeout-minutes: 3
-
-    strategy:
-      matrix:
-        python-version:
-        - '3.x'
-        - '2.7'
 
     steps:
 
@@ -28,10 +22,10 @@ jobs:
       with:
         fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-    - name: Select Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+    - name: Setup Python 3
+      uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.x'
 
     - name: Install dependencies
       run: pip install --upgrade octoprint pytest coverage
@@ -47,3 +41,25 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  test-python2:
+    name: Run Tests on Python 2
+
+    runs-on: ubuntu-latest
+    container:
+      image: python:2.7.18-buster
+
+    timeout-minutes: 3
+
+    steps:
+
+    - name: Check out the code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+    - name: Install dependencies
+      run: pip install --upgrade octoprint pytest coverage
+
+    - name: Run tests
+      run: pytest
