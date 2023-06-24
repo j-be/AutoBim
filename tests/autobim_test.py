@@ -410,3 +410,7 @@ def test_delay_between_porbes(plugin):
 	plugin.process_gcode(None, "ok")
 	sleep(0.01)
 	assert plugin._printer.sent_commands[0] == 'M117 ok. moving to next'
+
+	plugin._abort_now("")
+	assert not plugin.running
+	thread.join(1)
