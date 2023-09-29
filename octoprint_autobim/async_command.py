@@ -47,9 +47,9 @@ class AsyncCommand(object):
 	# Do not touch the rest of the implementation
 
 	def handle(self, line):
-		if not self.__running:
+		if not self.__running or not line:
 			return
-		self._handle_internal(line)
+		self._handle_internal(line.strip())
 
 	def _register_result(self, result):
 		self.__running = False
