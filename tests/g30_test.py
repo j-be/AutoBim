@@ -95,12 +95,12 @@ def test_pattern_selection(g30):
 	# Default is Marlin
 	printer.firmware_info = {"name": ""}
 	g30._start((1, 2))
-	assert g30.pattern.pattern == "^Bed X: -?\\d+\\.\\d+ Y: -?\\d+\\.\\d+ Z: (-?\\d+\\.\\d+)$"
+	assert g30.pattern.pattern == "^Bed X: ?-?\\d+\\.\\d+ Y: ?-?\\d+\\.\\d+ Z: ?(-?\\d+\\.\\d+)$"
 
 	# Marlin
 	printer.firmware_info = {"name": "Marlin 2.0.9.1"}
 	g30._start((1, 2))
-	assert g30.pattern.pattern == "^Bed X: -?\\d+\\.\\d+ Y: -?\\d+\\.\\d+ Z: (-?\\d+\\.\\d+)$"
+	assert g30.pattern.pattern == "^Bed X: ?-?\\d+\\.\\d+ Y: ?-?\\d+\\.\\d+ Z: ?(-?\\d+\\.\\d+)$"
 
 	# Klipper
 	printer.firmware_info = {"name": "Klipper"}
@@ -152,3 +152,12 @@ def test_retry_on_error(g30):
 	assert result.has_value() is False
 	assert result.error is True
 	assert result.abort is False
+
+
+def test_pattern_without_spaces(g30):
+	g30._start((30, 30))
+	g30.handle("Bed X:32.0 Y:202.0 Z:0.15\n")
+	g30.handle("ok")
+	result = g30._get(0)
+	assert result.has_value()
+	assert result.value == 0.15

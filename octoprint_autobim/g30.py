@@ -4,7 +4,7 @@ from octoprint_autobim.async_command import AsyncCommand, Result
 from octoprint_autobim.utils import filter_commands
 
 
-MARLIN_PATTERN = re.compile(r"^Bed X: -?\d+\.\d+ Y: -?\d+\.\d+ Z: (-?\d+\.\d+)$")
+MARLIN_PATTERN = re.compile(r"^Bed X: ?-?\d+\.\d+ Y: ?-?\d+\.\d+ Z: ?(-?\d+\.\d+)$")
 KLIPPER_PATTERN = re.compile(r"^// Result is z=(-?\d+\.\d+)$")
 
 
@@ -51,11 +51,11 @@ class G30Handler(AsyncCommand):
 					self._printer.commands(command)
 
 	def _handle_internal(self, line):
-		if "Error:Probing Failed" == line.strip():
+		if "Error:Probing Failed" == line:
 			self._register_result(Result.error())
 			return
 
-		if self._ok_is_error and "ok" == line.strip():
+		if self._ok_is_error and "ok" == line:
 			self._register_result(Result.error())
 			return
 
