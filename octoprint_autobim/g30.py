@@ -52,13 +52,18 @@ class G30Handler(AsyncCommand):
 
 	def _handle_internal(self, line):
 		if "Error:Probing Failed" == line.strip():
+			self._logger.info("Probing failed on '%s'", line)
 			self._register_result(Result.error())
 			return
 
 		if self._ok_is_error and "ok" == line.strip():
+			self._logger.info("Registering error on '%s'", line)
 			self._register_result(Result.error())
 			return
 
 		match = self.pattern.match(line)
 		if match:
+			self._logger.info("Match on '%s'", line)
 			self._register_result(Result.of(float(match.group(1))))
+		else:
+			self._logger.info("No match on '%s'", line)
