@@ -27,6 +27,8 @@ class ThreadWithValue(threading.Thread):
 def plugin():
 	plugin = AutobimPlugin()
 
+	plugin._has_control_permission = lambda: True
+
 	settings = MockSettings(plugin.get_settings_defaults())
 	settings.set_boolean(["has_ubl"], False)
 

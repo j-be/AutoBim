@@ -9,6 +9,8 @@ $(function () {
         let self = this;
         self.connection = parameters[0];
         self.settings = parameters[1];
+        self.loginState = parameters[2];
+        self.access = parameters[3];
         self.autoBimRunning = ko.observable(false);
         self.probeResults = ko.observableArray();
         self.probes = ko.observable(0);
@@ -36,7 +38,9 @@ $(function () {
                 error: function (data, _) {
                     new PNotify({
                         title: "Autobim failed.",
+                        title_escape: true,
                         text: data.responseText,
+                        text_escape: true,
                         hide: true,
                         type: "error"
                     });
@@ -56,7 +60,9 @@ $(function () {
                 error: function (data, _) {
                     new PNotify({
                         title: "Autobim failed.",
+                        title_escape: true,
                         text: data.responseText,
+                        text_escape: true,
                         type: "error"
                     });
                 }
@@ -75,7 +81,9 @@ $(function () {
                 error: function (data, _) {
                     new PNotify({
                         title: "Homing failed.",
+                        title_escape: true,
                         text: data.responseText,
+                        text_escape: true,
                         type: "error"
                     });
                 }
@@ -96,7 +104,9 @@ $(function () {
                 error: function (data, _) {
                     new PNotify({
                         title: "Testing failed.",
+                        title_escape: true,
                         text: data.responseText,
+                        text_escape: true,
                         type: "error"
                     });
                 }
@@ -121,7 +131,9 @@ $(function () {
                 error: function (data, _) {
                     new PNotify({
                         title: "Testing failed.",
+                        title_escape: true,
                         text: data.responseText,
+                        text_escape: true,
                         type: "error"
                     });
                 },
@@ -147,28 +159,36 @@ $(function () {
             if (data.type === "started") {
                 new PNotify({
                     title: "AutoBim started",
+                    title_escape: true,
                     text: "Please look at the printer's screen",
+                    text_escape: true,
                     type: "success",
                 });
                 self.autoBimRunning(true);
             } else if (data.type === "aborted") {
                 new PNotify({
                     title: "AutoBim aborted",
+                    title_escape: true,
                     text: data.message,
+                    text_escape: true,
                     type: "error",
                 });
                 self.autoBimRunning(false);
             } else if (data.type === "completed") {
                 new PNotify({
                     title: "AutoBim completed",
+                    title_escape: true,
                     text: "Bed should be horizontal now",
+                    text_escape: true,
                     type: "success",
                 });
                 self.autoBimRunning(false);
             } else if (data.message) {
                 new PNotify({
                     title: "AutoBim",
+                    title_escape: true,
                     text: data.message,
+                    text_escape: true,
                     type: data.type,
                 });
             }
@@ -186,7 +206,9 @@ $(function () {
                 error: function (data, _) {
                     new PNotify({
                         title: "Autobim initialization failed.",
+                        title_escape: true,
                         text: data.responseText,
+                        text_escape: true,
                         type: "error"
                     });
                 },
@@ -204,7 +226,7 @@ $(function () {
     OCTOPRINT_VIEWMODELS.push({
         construct: AutobimViewModel,
         // ViewModels your plugin depends on, e.g. loginStateViewModel, settingsViewModel, ...
-        dependencies: [ "connectionViewModel", "settingsViewModel" ],
+        dependencies: [ "connectionViewModel", "settingsViewModel", "loginStateViewModel", "accessViewModel" ],
         // Elements to bind to, e.g. #settings_plugin_autobim, #tab_plugin_autobim, ...
         elements: [ "#navbar_plugin_autobim", "#settings_plugin_autobim" ]
     });

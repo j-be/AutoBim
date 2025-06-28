@@ -12,6 +12,8 @@ from tests.mocks import MockPrinter, MockSettings, MockPluginManager
 def plugin():
 	plugin = AutobimPlugin()
 
+	plugin._has_control_permission = lambda: True
+
 	settings = MockSettings(plugin.get_settings_defaults())
 
 	logging.basicConfig(level=logging.INFO)

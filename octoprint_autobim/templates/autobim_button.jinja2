@@ -1,6 +1,8 @@
-<button class="btn btn-primary" data-bind="hidden: autoBimRunning, click: startAutoBim, enable: connection.isReady">
-    <i class="fa fa-train"></i>
-</button>
-<button class="btn btn-secondary" data-bind="visible: autoBimRunning, click: abortAutoBim">
-    <i class="fa fa-stop-circle"></i>
-</button>
+<div data-bind="visible: loginState.hasPermissionKo(access.permissions.CONTROL)">
+    <button class="btn btn-primary" data-bind="hidden: autoBimRunning, click: startAutoBim, enable: connection.isReady">
+        <i class="fa fa-train"></i>
+    </button>
+    <button class="btn btn-secondary" data-bind="visible: autoBimRunning, click: abortAutoBim">
+        <i class="fa fa-stop-circle"></i>
+    </button>
+</div>

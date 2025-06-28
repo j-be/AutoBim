@@ -6,7 +6,8 @@ import time
 
 import octoprint.plugin
 from flask import jsonify
-from flask_login import current_user
+
+from octoprint.access.permissions import Permissions
 
 from octoprint_autobim.g30 import G30Handler
 from octoprint_autobim.m503 import M503Handler
@@ -104,10 +105,14 @@ class AutobimPlugin(
 			test_all_corners=[],
 		)
 
+	def _has_control_permission(self):
+		return Permissions.CONTROL.can()
+
 	def on_api_command(self, command, data):
-		if command == "start":
-			if current_user.is_anonymous():
+		if not self._has_control_permission():
 				return "Insufficient rights", 403
+
+		if command == "start":
 			if self.running:
 				return "Already running", 400
 			self._logger.info("Starting")
